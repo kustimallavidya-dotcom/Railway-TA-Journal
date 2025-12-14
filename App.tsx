@@ -1,9 +1,91 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, LogOut } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { ROWS_PER_PAGE, MONTHS, INITIAL_ENTRY } from './constants';
 import { PrintLayout } from './components/PrintLayout';
 import { AdComponent } from './components/AdComponent';
+
+// --- TRANSLATIONS ---
+const STRINGS = {
+  en: {
+    welcome: "Welcome",
+    switchProfile: "Switch Profile",
+    addNewProfile: "Add New Profile",
+    newJournal: "New TA Journal",
+    totalJournals: "Total Journals",
+    recent: "Recent Journals",
+    noJournals: "No TA journals yet. Create one!",
+    entries: "Entries",
+    lastMod: "Last modified",
+    create: "Create",
+    cancel: "Cancel",
+    selectPeriod: "Select Period",
+    unsavedTitle: "Unsaved Changes",
+    unsavedMsg: "Your data is not saved. Do you want to exit?",
+    exitAnyway: "Exit Anyway",
+    deleteRow: "Delete this row?",
+    installTitle: "Install App",
+    installMsg: "Install Railway TA App for easier monthly claims and offline access.",
+    installNow: "Install Now",
+    later: "Later",
+    printPdf: "Print PDF",
+    backToEdit: "Back to Edit",
+    setupProfile: "Setup Profile",
+    saveProfile: "Save Profile",
+    fillDetails: "Fill Daily TA Details",
+    done: "Done",
+    dateFormat: "DD-MM",
+    trainNo: "TRAIN NO",
+    rate: "RATE",
+    from: "FROM",
+    to: "TO",
+    depart: "DEPART",
+    arrive: "ARRIVE",
+    kms: "KMS",
+    percent: "DAY/NIGHT %",
+    purpose: "PURPOSE",
+    tapToAdd: "Tap + to add a daily journey"
+  },
+  mr: {
+    welcome: "स्वागत आहे",
+    switchProfile: "प्रोफाइल बदला",
+    addNewProfile: "नवीन प्रोफाइल जोडा",
+    newJournal: "नवीन टी.ए. जर्नल",
+    totalJournals: "एकूण जर्नल्स",
+    recent: "अलीकडील जर्नल्स",
+    noJournals: "अद्याप कोणतीही जर्नल्स नाहीत. एक तयार करा!",
+    entries: "नोंदी",
+    lastMod: "शेवटचा बदल",
+    create: "तयार करा",
+    cancel: "रद्द करा",
+    selectPeriod: "कालावधी निवडा",
+    unsavedTitle: "सेव्ह केलेले नाही",
+    unsavedMsg: "तुमची माहिती सेव्ह केलेली नाही. बाहेर जायचे आहे का?",
+    exitAnyway: "तरीही बाहेर पडा",
+    deleteRow: "ही ओळ हटवायची?",
+    installTitle: "ॲप इंस्टॉल करा",
+    installMsg: "सोप्या मासिक दाव्यांसाठी रेल्वे टी.ए. ॲप इंस्टॉल करा.",
+    installNow: "इंस्टॉल करा",
+    later: "नंतर",
+    printPdf: "PDF प्रिंट करा",
+    backToEdit: "मागे जा",
+    setupProfile: "प्रोफाइल सेट करा",
+    saveProfile: "प्रोफाइल सेव्ह करा",
+    fillDetails: "दैनंदिन टी.ए. माहिती भरा",
+    done: "पूर्ण झाले",
+    dateFormat: "दिनांक",
+    trainNo: "गाडी क्र.",
+    rate: "दर",
+    from: "कोठून",
+    to: "कोठे",
+    depart: "प्रस्थान",
+    arrive: "आगमन",
+    kms: "कि.मी.",
+    percent: "दिवस/रात्र %",
+    purpose: "उद्देश",
+    tapToAdd: "प्रवास जोडण्यासाठी + दाबा"
+  }
+};
 
 // --- MAIN APP COMPONENT ---
 
@@ -13,6 +95,7 @@ export default function App() {
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [journals, setJournals] = useState<MonthJournal[]>([]);
   const [activeJournalId, setActiveJournalId] = useState<string | null>(null);
+  const [lang, setLang] = useState<'en' | 'mr'>('en');
   
   // Install Prompt State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -24,16 +107,21 @@ export default function App() {
     // Load data from local storage
     const savedProfiles = localStorage.getItem('railway_ta_profiles');
     const savedJournals = localStorage.getItem('railway_ta_journals');
+    const savedLang = localStorage.getItem('railway_ta_lang');
     
     if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
     if (savedJournals) setJournals(JSON.parse(savedJournals));
+    if (savedLang) setLang(savedLang as 'en' | 'mr');
 
     // Splash screen timer
     const timer = setTimeout(() => {
-      setView(savedProfiles && JSON.parse(savedProfiles).length > 0 ? 'dashboard' : 'profile');
-      if (savedProfiles) {
+      const hasProfiles = savedProfiles && JSON.parse(savedProfiles).length > 0;
+      if (hasProfiles) {
          const p = JSON.parse(savedProfiles);
          if(p.length > 0) setActiveProfileId(p[0].id);
+         setView('dashboard');
+      } else {
+         setView('profile');
       }
     }, 2500);
 
@@ -55,7 +143,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('railway_ta_journals', JSON.stringify(journals));
   }, [journals]);
+  
+  const toggleLang = () => {
+    const newLang = lang === 'en' ? 'mr' : 'en';
+    setLang(newLang);
+    localStorage.setItem('railway_ta_lang', newLang);
+  };
 
+  const t = STRINGS[lang];
 
   // --- HANDLERS ---
 
@@ -94,13 +189,14 @@ export default function App() {
 
   if (view === 'splash') {
     return (
-      <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4">
-        <div className="animate-bounce mb-6">
-           <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/train-pattern.png')]"></div>
+        <div className="animate-bounce mb-6 relative z-10">
+           <svg className="w-24 h-24 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
         </div>
-        <h1 className="text-3xl font-bold mb-2 text-center">Railway TA Manager</h1>
-        <p className="text-blue-200">Official Travelling Allowance App</p>
-        <div className="mt-12 text-sm opacity-70 absolute bottom-10">
+        <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10">Railway TA Journal</h1>
+        <p className="text-blue-200 text-lg z-10">Simplify Your Claims</p>
+        <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide">
           Developed By Milind Manugade
         </div>
       </div>
@@ -111,16 +207,16 @@ export default function App() {
   const activeJournal = journals.find(j => j.id === activeJournalId);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pb-16">
       {/* Install Modal */}
       {showInstallModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
-          <div className="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full animate-fade-in-up">
-            <h3 className="text-lg font-bold text-blue-900 mb-2">Install App</h3>
-            <p className="text-gray-600 mb-4">Install Railway TA App for easier monthly claims and offline access.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full animate-fade-in-up border-t-4 border-blue-600">
+            <h3 className="text-xl font-bold text-blue-900 mb-2">{t.installTitle}</h3>
+            <p className="text-gray-600 mb-6">{t.installMsg}</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowInstallModal(false)} className="text-gray-500 font-medium">Later</button>
-              <button onClick={handleInstallApp} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">Install Now</button>
+              <button onClick={() => setShowInstallModal(false)} className="text-gray-500 font-medium px-3 py-2">{t.later}</button>
+              <button onClick={handleInstallApp} className="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold shadow-lg active:scale-95 transition-transform">{t.installNow}</button>
             </div>
           </div>
         </div>
@@ -130,7 +226,8 @@ export default function App() {
       {view === 'profile' && (
         <ProfileManager 
           onSave={handleCreateProfile} 
-          onCancel={profiles.length > 0 ? () => setView('dashboard') : undefined} 
+          onCancel={profiles.length > 0 ? () => setView('dashboard') : undefined}
+          t={t}
         />
       )}
 
@@ -144,6 +241,9 @@ export default function App() {
           onAddProfile={() => setView('profile')}
           onOpenJournal={(id) => { setActiveJournalId(id); setView('editor'); }}
           onCreateJournal={handleCreateJournal}
+          lang={lang}
+          toggleLang={toggleLang}
+          t={t}
         />
       )}
 
@@ -157,6 +257,7 @@ export default function App() {
           }}
           onBack={() => setView('dashboard')}
           onPrint={() => setView('print')}
+          t={t}
         />
       )}
 
@@ -164,15 +265,15 @@ export default function App() {
       {view === 'print' && activeJournal && activeProfile && (
         <div className="min-h-screen bg-gray-200">
           <div className="no-print fixed top-0 w-full bg-white shadow-md z-10 p-4 flex justify-between items-center">
-             <button onClick={() => setView('editor')} className="flex items-center text-gray-700 font-medium">
-               <ArrowLeft className="w-5 h-5 mr-1" /> Back to Edit
+             <button onClick={() => setView('editor')} className="flex items-center text-gray-700 font-medium hover:text-blue-700">
+               <ArrowLeft className="w-5 h-5 mr-1" /> {t.backToEdit}
              </button>
-             <button onClick={() => window.print()} className="flex items-center bg-blue-700 text-white px-4 py-2 rounded shadow hover:bg-blue-800">
-               <Printer className="w-5 h-5 mr-2" /> Print PDF
+             <button onClick={() => window.print()} className="flex items-center bg-blue-700 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-800 font-bold">
+               <Printer className="w-5 h-5 mr-2" /> {t.printPdf}
              </button>
           </div>
-          <div className="pt-20 pb-10 px-4 overflow-auto">
-             <div className="bg-white shadow-2xl mx-auto p-0"> 
+          <div className="pt-20 pb-10 px-4 overflow-auto flex justify-center">
+             <div className="bg-white shadow-2xl mx-auto p-0 origin-top scale-100 md:scale-100 print:scale-100"> 
                 {/* Print Layout Component Injected Here */}
                 <PrintLayout journal={activeJournal} profile={activeProfile} />
              </div>
@@ -180,14 +281,17 @@ export default function App() {
         </div>
       )}
 
-      <AdComponent type="banner" />
+      {/* Sticky Banner Ad */}
+      <div className="fixed bottom-0 w-full z-40 bg-gray-100 border-t border-gray-300">
+         <AdComponent type="banner" />
+      </div>
     </div>
   );
 }
 
 // --- SUB COMPONENTS ---
 
-const ProfileManager = ({ onSave, onCancel }: { onSave: (p: UserProfile) => void, onCancel?: () => void }) => {
+const ProfileManager = ({ onSave, onCancel, t }: any) => {
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     branch: 'TFC/OPTS', division: 'PUNE', headquarters: 'KARAD',
     name: '', designation: '', pay: '', level: 'Level-2', pfNumber: ''
@@ -201,76 +305,76 @@ const ProfileManager = ({ onSave, onCancel }: { onSave: (p: UserProfile) => void
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold text-blue-900 mb-6">Setup Profile</h2>
+    <div className="p-6 max-w-lg mx-auto bg-white min-h-screen md:min-h-0 md:rounded-xl md:shadow-lg md:mt-10">
+      <h2 className="text-2xl font-bold text-blue-900 mb-6 border-b pb-2">{t.setupProfile}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-           <input required className="w-full border p-2 rounded focus:ring-2 ring-blue-500 uppercase" 
-             value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Milind D. Manugade" />
+           <input required className="w-full border-gray-300 border p-3 rounded-lg focus:ring-2 ring-blue-500 uppercase font-semibold" 
+             value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. MILIND D. MANUGADE" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Designation</label>
-            <input required className="w-full border p-2 rounded uppercase" 
+            <input required className="w-full border-gray-300 border p-3 rounded-lg uppercase" 
               value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} placeholder="PMA/SS" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Station</label>
-            <input required className="w-full border p-2 rounded uppercase" 
+            <input required className="w-full border-gray-300 border p-3 rounded-lg uppercase" 
               value={formData.station} onChange={e => setFormData({...formData, station: e.target.value})} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Pay (Rs)</label>
-            <input required className="w-full border p-2 rounded" 
+            <input required className="w-full border-gray-300 border p-3 rounded-lg" 
               value={formData.pay} onChange={e => setFormData({...formData, pay: e.target.value})} placeholder="24500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Level</label>
-            <input required className="w-full border p-2 rounded" 
+            <input required className="w-full border-gray-300 border p-3 rounded-lg" 
               value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} />
           </div>
         </div>
         <div>
            <label className="block text-sm font-medium text-gray-700">P.F. Number</label>
-           <input required className="w-full border p-2 rounded" 
+           <input required className="w-full border-gray-300 border p-3 rounded-lg" 
              value={formData.pfNumber} onChange={e => setFormData({...formData, pfNumber: e.target.value})} />
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
            <div>
-             <label className="block text-xs font-medium text-gray-700">Branch</label>
-             <input className="w-full border p-2 rounded text-sm uppercase" value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
+             <label className="block text-xs font-medium text-gray-500">Branch</label>
+             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
            </div>
            <div>
-             <label className="block text-xs font-medium text-gray-700">Division</label>
-             <input className="w-full border p-2 rounded text-sm uppercase" value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
+             <label className="block text-xs font-medium text-gray-500">Division</label>
+             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
            </div>
            <div>
-             <label className="block text-xs font-medium text-gray-700">HQ</label>
-             <input className="w-full border p-2 rounded text-sm uppercase" value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
+             <label className="block text-xs font-medium text-gray-500">HQ</label>
+             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
            </div>
         </div>
         
-        <button type="submit" className="w-full bg-blue-700 text-white p-3 rounded-lg font-bold mt-4">Save Profile</button>
-        {onCancel && <button type="button" onClick={onCancel} className="w-full text-gray-500 p-3 mt-2">Cancel</button>}
+        <button type="submit" className="w-full bg-blue-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg mt-6 active:scale-95 transition-transform">{t.saveProfile}</button>
+        {onCancel && <button type="button" onClick={onCancel} className="w-full text-gray-500 p-3 mt-2 font-medium">{t.cancel}</button>}
       </form>
     </div>
   );
 };
 
-const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal }: any) => {
+const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal, lang, toggleLang, t }: any) => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
+    <div className="p-4 max-w-2xl mx-auto pb-20">
        <div className="flex justify-between items-center mb-6">
          <div>
-            <h1 className="text-xl font-bold text-gray-800">Welcome,</h1>
+            <h1 className="text-xl font-bold text-gray-800">{t.welcome},</h1>
             <div 
               onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
               className="text-blue-700 font-bold text-lg flex items-center cursor-pointer"
@@ -278,78 +382,97 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
                {profile.name} <Settings className="w-4 h-4 ml-2" />
             </div>
          </div>
-         <div className="bg-blue-100 p-2 rounded-full text-blue-800 font-bold">{profile.designation}</div>
+         <div className="flex flex-col items-end gap-2">
+            <button onClick={toggleLang} className="flex items-center text-xs bg-white border border-gray-300 px-2 py-1 rounded-full shadow-sm">
+               <Globe className="w-3 h-3 mr-1" /> {lang === 'en' ? 'मराठी' : 'English'}
+            </button>
+            <div className="bg-blue-100 px-3 py-1 rounded-full text-blue-800 text-xs font-bold border border-blue-200 shadow-sm">{profile.designation}</div>
+         </div>
        </div>
 
        {showProfileSwitcher && (
-         <div className="mb-6 bg-white p-4 rounded-lg shadow border">
-           <h3 className="text-sm font-bold mb-2">Switch Profile</h3>
+         <div className="mb-6 bg-white p-4 rounded-xl shadow-lg border border-gray-100 animate-fade-in-up">
+           <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">{t.switchProfile}</h3>
            <div className="space-y-2">
              {profiles.map((p: any) => (
                <button key={p.id} onClick={() => { onSwitchProfile(p.id); setShowProfileSwitcher(false); }} 
-                 className={`w-full text-left p-2 rounded ${p.id === profile.id ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700' : 'hover:bg-gray-50'}`}>
-                 {p.name} <span className="text-xs text-gray-500">({p.station})</span>
+                 className={`w-full text-left p-3 rounded-lg flex justify-between items-center transition-colors ${p.id === profile.id ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'hover:bg-gray-50'}`}>
+                 <span className="font-semibold">{p.name}</span>
+                 <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-600">{p.station}</span>
                </button>
              ))}
-             <button onClick={onAddProfile} className="w-full flex items-center p-2 text-blue-600 font-medium">
-               <UserPlus className="w-4 h-4 mr-2" /> Add New Profile
+             <button onClick={onAddProfile} className="w-full flex items-center justify-center p-3 text-blue-600 font-bold border-t mt-2 hover:bg-blue-50 rounded-b-lg">
+               <UserPlus className="w-5 h-5 mr-2" /> {t.addNewProfile}
              </button>
            </div>
          </div>
        )}
 
        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition"
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer hover:shadow-md transition active:scale-95"
              onClick={() => setShowMonthPicker(true)}
           >
-             <div className="bg-blue-600 text-white p-3 rounded-full mb-2">
-               <Plus className="w-6 h-6" />
+             <div className="bg-blue-600 text-white p-4 rounded-full mb-3 shadow-blue-200 shadow-lg">
+               <Plus className="w-8 h-8" />
              </div>
-             <span className="font-semibold text-gray-700">New TA Journal</span>
+             <span className="font-bold text-gray-800">{t.newJournal}</span>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-             <div className="bg-green-600 text-white p-3 rounded-full mb-2">
-               <FileText className="w-6 h-6" />
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
+             <div className="bg-emerald-500 text-white p-4 rounded-full mb-3 shadow-emerald-200 shadow-lg">
+               <FileText className="w-8 h-8" />
              </div>
-             <span className="font-semibold text-gray-700">Total: {journals.length}</span>
+             <span className="font-bold text-gray-800">{t.totalJournals}: {journals.length}</span>
           </div>
        </div>
 
        {showMonthPicker && (
-         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-           <div className="bg-white rounded-lg p-6 w-full max-w-xs animate-fade-in-up">
-             <h3 className="font-bold text-lg mb-4">Select Period</h3>
-             <select className="w-full border p-2 rounded mb-3" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
-               {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
-             </select>
-             <select className="w-full border p-2 rounded mb-6" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-               {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-             </select>
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+           <div className="bg-white rounded-2xl p-6 w-full max-w-xs animate-fade-in-up shadow-2xl">
+             <h3 className="font-bold text-xl mb-6 text-gray-800">{t.selectPeriod}</h3>
+             <div className="space-y-4 mb-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 ml-1">MONTH</label>
+                  <select className="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 font-semibold" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+                    {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                   <label className="text-xs font-bold text-gray-500 ml-1">YEAR</label>
+                   <select className="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 font-semibold" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                    {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                   </select>
+                </div>
+             </div>
              <div className="flex gap-3">
-               <button className="flex-1 bg-gray-200 p-2 rounded" onClick={() => setShowMonthPicker(false)}>Cancel</button>
-               <button className="flex-1 bg-blue-700 text-white p-2 rounded font-bold" onClick={() => { onCreateJournal(selectedMonth, selectedYear); setShowMonthPicker(false); }}>Create</button>
+               <button className="flex-1 bg-gray-100 text-gray-600 p-3 rounded-xl font-bold" onClick={() => setShowMonthPicker(false)}>{t.cancel}</button>
+               <button className="flex-1 bg-blue-700 text-white p-3 rounded-xl font-bold shadow-lg" onClick={() => { onCreateJournal(selectedMonth, selectedYear); setShowMonthPicker(false); }}>{t.create}</button>
              </div>
            </div>
          </div>
        )}
 
-       <h3 className="font-bold text-gray-600 mb-3 px-1">Recent Journals</h3>
+       <h3 className="font-bold text-gray-500 text-sm mb-3 px-1 uppercase tracking-wider">{t.recent}</h3>
        <div className="space-y-3">
          {journals.length === 0 ? (
-           <p className="text-gray-400 text-center py-8">No TA journals yet. Create one!</p>
+           <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+             <div className="text-gray-300 mb-3"><FileText className="w-12 h-12 mx-auto" /></div>
+             <p className="text-gray-400 font-medium">{t.noJournals}</p>
+           </div>
          ) : (
            journals.map((j: MonthJournal) => (
-             <div key={j.id} onClick={() => onOpenJournal(j.id)} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center cursor-pointer hover:shadow-md transition">
+             <div key={j.id} onClick={() => onOpenJournal(j.id)} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:shadow-md transition active:bg-gray-50">
                 <div className="flex items-center">
-                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-lg flex items-center justify-center font-bold text-lg mr-4">
+                  <div className="bg-blue-50 text-blue-700 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg mr-4 border border-blue-100 shadow-sm">
                     {j.month.substring(0,3)}
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-800">{j.month} {j.year}</h4>
-                    <p className="text-xs text-gray-500">{j.entries.length} Entries • Last modified just now</p>
+                    <h4 className="font-bold text-gray-800 text-lg">{j.month} {j.year}</h4>
+                    <p className="text-xs text-gray-500 font-medium">{j.entries.length} {t.entries} • {t.lastMod} today</p>
                   </div>
                 </div>
-                <Printer className="text-gray-400 w-5 h-5" />
+                <div className="bg-gray-100 p-2 rounded-full text-gray-500">
+                   <ArrowLeft className="w-5 h-5 rotate-180" />
+                </div>
              </div>
            ))
          )}
@@ -358,13 +481,7 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
   );
 };
 
-const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint }: { 
-    journal: MonthJournal, 
-    profile: UserProfile, 
-    onUpdate: (j: MonthJournal) => void,
-    onBack: () => void,
-    onPrint: () => void
-}) => {
+const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) => {
   const [entries, setEntries] = useState<TAEntry[]>(journal.entries);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
@@ -375,9 +492,6 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint }: {
   }, [entries]);
 
   const handleBack = () => {
-    // Usually save is automatic, but if we had dirty unsaved input state, we'd check here.
-    // Since we sync state immediately, we just check if empty? No, checking logic per user request.
-    // Simulating "Unsaved" if currently in edit mode
     if (editingId) {
       setShowUnsavedWarning(true);
     } else {
@@ -396,7 +510,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint }: {
   };
 
   const deleteEntry = (id: string) => {
-    if(confirm('Delete this row?')) {
+    if(confirm(t.deleteRow)) {
       setEntries(entries.filter(e => e.id !== id));
       if(editingId === id) setEditingId(null);
     }
@@ -411,146 +525,155 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint }: {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Header */}
-      <div className="bg-blue-900 text-white p-4 shadow-md z-10 sticky top-0">
-         <div className="flex justify-between items-center">
-            <button onClick={handleBack}><ArrowLeft className="w-6 h-6" /></button>
-            <div className="text-center">
-               <h2 className="font-bold">{journal.month} {journal.year}</h2>
-               <p className="text-xs text-blue-200">Official TA Journal</p>
-            </div>
-            <button onClick={onPrint}><Printer className="w-6 h-6" /></button>
+      <div className="bg-white text-gray-800 p-3 shadow-md z-30 sticky top-0 flex justify-between items-center border-b border-gray-200">
+         <button onClick={handleBack} className="p-2 rounded-full hover:bg-gray-100"><ArrowLeft className="w-6 h-6 text-gray-700" /></button>
+         <div className="text-center">
+            <h2 className="font-bold text-lg">{journal.month} {journal.year}</h2>
+            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Official TA Journal</p>
          </div>
+         <button onClick={onPrint} className="p-2 rounded-full hover:bg-blue-50 text-blue-700"><Printer className="w-6 h-6" /></button>
       </div>
 
       {/* Warning Popup */}
       {showUnsavedWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-           <div className="bg-white rounded-lg p-6 w-full max-w-sm border-l-4 border-red-500 shadow-2xl">
-              <h3 className="text-lg font-bold text-red-600 mb-2 flex items-center">
-                <AlertTriangle className="mr-2" /> Unsaved Changes
+           <div className="bg-white rounded-2xl p-6 w-full max-w-sm border-t-4 border-red-500 shadow-2xl animate-fade-in-up">
+              <h3 className="text-xl font-bold text-red-600 mb-2 flex items-center">
+                <AlertTriangle className="mr-2" /> {t.unsavedTitle}
               </h3>
-              <p className="text-gray-700 font-medium mb-4">तुमची माहिती सेव्ह केलेली नाही. बाहेर जायचे आहे का?</p>
+              <p className="text-gray-700 font-medium mb-6">{t.unsavedMsg}</p>
               <div className="flex justify-end gap-3">
-                 <button onClick={() => setShowUnsavedWarning(false)} className="px-4 py-2 bg-gray-200 rounded text-gray-700">Cancel</button>
-                 <button onClick={() => { setShowUnsavedWarning(false); onBack(); }} className="px-4 py-2 bg-red-600 text-white rounded font-bold">Exit Anyway</button>
+                 <button onClick={() => setShowUnsavedWarning(false)} className="px-5 py-2 bg-gray-100 rounded-lg text-gray-700 font-bold">{t.cancel}</button>
+                 <button onClick={() => { setShowUnsavedWarning(false); onBack(); }} className="px-5 py-2 bg-red-600 text-white rounded-lg font-bold shadow-lg">{t.exitAnyway}</button>
               </div>
            </div>
         </div>
       )}
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 pb-32 scroll-smooth">
          {entries.length === 0 && (
-           <div className="text-center text-gray-400 mt-10">
-             <p>No entries yet.</p>
-             <p className="text-sm">Tap + to add a daily journey.</p>
+           <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+             <div className="bg-white p-6 rounded-full shadow-sm mb-4">
+               <Plus className="w-8 h-8 text-blue-300" />
+             </div>
+             <p className="font-medium">{t.tapToAdd}</p>
            </div>
          )}
          
          {entries.map((entry, index) => {
            const isEditing = editingId === entry.id;
            return (
-             <div key={entry.id} className={`bg-white rounded-lg shadow-sm overflow-hidden border ${isEditing ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-200'}`}>
+             <div key={entry.id} className={`bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 ${isEditing ? 'ring-2 ring-blue-500 shadow-lg scale-[1.02] z-10 my-4' : 'border border-gray-100'}`}>
                 {/* Collapsed View */}
                 {!isEditing && (
-                  <div className="p-3 flex justify-between items-center" onClick={() => setEditingId(entry.id)}>
-                     <div className="flex items-center gap-3">
-                        <div className="bg-gray-100 px-2 py-1 rounded text-center min-w-[3rem]">
-                           <div className="text-xs font-bold text-gray-500">DATE</div>
-                           <div className="font-bold text-blue-900">{entry.date || '--'}</div>
+                  <div className="p-4 flex justify-between items-center active:bg-gray-50 cursor-pointer" onClick={() => setEditingId(entry.id)}>
+                     <div className="flex items-center gap-4">
+                        <div className="bg-gray-100 px-3 py-2 rounded-lg text-center min-w-[3.5rem] border border-gray-200">
+                           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.dateFormat}</div>
+                           <div className="font-bold text-blue-900 text-lg font-mono">{entry.date || '--'}</div>
                         </div>
                         <div>
-                           <div className="font-bold text-gray-800">{entry.stationFrom || '?'} <span className="text-gray-400">➔</span> {entry.stationTo || '?'}</div>
-                           <div className="text-xs text-gray-500">{entry.trainNo} • {entry.kms}km • {entry.dayNightPercent}</div>
+                           <div className="font-bold text-gray-800 text-lg flex items-center">
+                              {entry.stationFrom || '?'} 
+                              <span className="text-gray-300 mx-2 text-sm">➜</span> 
+                              {entry.stationTo || '?'}
+                           </div>
+                           <div className="text-xs text-gray-500 font-medium mt-1 flex gap-2">
+                             <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">{entry.trainNo || 'No Train'}</span>
+                             <span>{entry.kms}km</span>
+                             <span>{entry.dayNightPercent}</span>
+                           </div>
                         </div>
                      </div>
-                     <div className="text-gray-400">Edit</div>
                   </div>
                 )}
 
                 {/* Expanded Edit View */}
                 {isEditing && (
-                  <div className="p-4 space-y-3 bg-blue-50/30">
-                     <div className="flex justify-between items-center border-b pb-2 mb-2">
-                       <span className="font-bold text-blue-900">Entry #{index + 1}</span>
-                       <div className="flex gap-2">
-                          <button onClick={() => duplicateEntry(entry)} className="p-1 text-blue-600"><Copy size={18} /></button>
-                          <button onClick={() => deleteEntry(entry.id)} className="p-1 text-red-600"><Trash2 size={18} /></button>
+                  <div className="bg-white">
+                     <div className="bg-blue-600 text-white p-3 flex justify-between items-center">
+                       <span className="font-bold text-sm flex items-center"><FileText className="w-4 h-4 mr-2" /> {t.fillDetails}</span>
+                       <div className="flex gap-1">
+                          <button onClick={() => duplicateEntry(entry)} className="p-2 bg-blue-500 rounded hover:bg-blue-400 text-white"><Copy size={16} /></button>
+                          <button onClick={() => deleteEntry(entry.id)} className="p-2 bg-red-500 rounded hover:bg-red-400 text-white"><Trash2 size={16} /></button>
                        </div>
                      </div>
                      
-                     {/* Row 1 */}
-                     <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">DATE</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" placeholder="DD-MM" 
-                            value={entry.date} onChange={e => updateEntry(entry.id, 'date', e.target.value)} />
+                     <div className="p-4 space-y-4">
+                        {/* Row 1 */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.dateFormat}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" placeholder="DD-MM" 
+                                value={entry.date} onChange={e => updateEntry(entry.id, 'date', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.trainNo}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                                value={entry.trainNo} onChange={e => updateEntry(entry.id, 'trainNo', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.rate}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                                value={entry.rate} onChange={e => updateEntry(entry.id, 'rate', e.target.value)} />
+                            </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">TRAIN NO</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.trainNo} onChange={e => updateEntry(entry.id, 'trainNo', e.target.value)} />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">RATE</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.rate} onChange={e => updateEntry(entry.id, 'rate', e.target.value)} />
-                        </div>
-                     </div>
 
-                     {/* Row 2: Stations */}
-                     <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">FROM</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.stationFrom} onChange={e => updateEntry(entry.id, 'stationFrom', e.target.value)} />
+                        {/* Row 2: Stations */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.from}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold" 
+                                value={entry.stationFrom} onChange={e => updateEntry(entry.id, 'stationFrom', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.to}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold" 
+                                value={entry.stationTo} onChange={e => updateEntry(entry.id, 'stationTo', e.target.value)} />
+                            </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">TO</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.stationTo} onChange={e => updateEntry(entry.id, 'stationTo', e.target.value)} />
-                        </div>
-                     </div>
 
-                     {/* Row 3: Time */}
-                     <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">DEPART TIME</label>
-                          <input type="time" className="w-full p-2 border rounded bg-white handwriting" 
-                            value={entry.departTime} onChange={e => updateEntry(entry.id, 'departTime', e.target.value)} />
+                        {/* Row 3: Time */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.depart}</label>
+                              <input type="time" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors" 
+                                value={entry.departTime} onChange={e => updateEntry(entry.id, 'departTime', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.arrive}</label>
+                              <input type="time" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors" 
+                                value={entry.arriveTime} onChange={e => updateEntry(entry.id, 'arriveTime', e.target.value)} />
+                            </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">ARRIVE TIME</label>
-                          <input type="time" className="w-full p-2 border rounded bg-white handwriting" 
-                            value={entry.arriveTime} onChange={e => updateEntry(entry.id, 'arriveTime', e.target.value)} />
-                        </div>
-                     </div>
 
-                     {/* Row 4: Details */}
-                     <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">KMS</label>
-                          <input type="number" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.kms} onChange={e => updateEntry(entry.id, 'kms', e.target.value)} />
+                        {/* Row 4: Details */}
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.kms}</label>
+                              <input type="number" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                                value={entry.kms} onChange={e => updateEntry(entry.id, 'kms', e.target.value)} />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.percent}</label>
+                              <select className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors font-bold" value={entry.dayNightPercent} onChange={e => updateEntry(entry.id, 'dayNightPercent', e.target.value)}>
+                                 <option value="100%">100%</option>
+                                 <option value="70%">70%</option>
+                                 <option value="30%">30%</option>
+                              </select>
+                            </div>
+                             <div className="space-y-1">
+                              <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.purpose}</label>
+                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                                value={entry.purpose} onChange={e => updateEntry(entry.id, 'purpose', e.target.value)} />
+                            </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-gray-500">DAY/NIGHT %</label>
-                          <select className="w-full p-2 border rounded bg-white handwriting" value={entry.dayNightPercent} onChange={e => updateEntry(entry.id, 'dayNightPercent', e.target.value)}>
-                             <option value="100%">100%</option>
-                             <option value="70%">70%</option>
-                             <option value="30%">30%</option>
-                          </select>
-                        </div>
-                         <div>
-                          <label className="text-[10px] font-bold text-gray-500">PURPOSE</label>
-                          <input type="text" className="w-full p-2 border rounded bg-white handwriting uppercase" 
-                            value={entry.purpose} onChange={e => updateEntry(entry.id, 'purpose', e.target.value)} />
-                        </div>
-                     </div>
 
-                     <button onClick={() => setEditingId(null)} className="w-full bg-blue-600 text-white py-2 rounded font-bold mt-2 flex items-center justify-center">
-                        <Save className="w-4 h-4 mr-2" /> Done
-                     </button>
+                        <button onClick={() => setEditingId(null)} className="w-full bg-blue-600 active:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center justify-center text-lg mt-4">
+                           <Save className="w-5 h-5 mr-2" /> {t.done}
+                        </button>
+                     </div>
                   </div>
                 )}
              </div>
@@ -559,7 +682,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint }: {
       </div>
 
       {/* FAB */}
-      <button onClick={addEntry} className="fixed bottom-20 right-6 bg-blue-700 text-white p-4 rounded-full shadow-lg hover:bg-blue-800 transition transform hover:scale-105">
+      <button onClick={addEntry} className="fixed bottom-20 right-6 bg-blue-600 text-white p-4 rounded-full shadow-xl shadow-blue-300 hover:bg-blue-700 transition-transform active:scale-95 z-30">
         <Plus className="w-8 h-8" />
       </button>
     </div>

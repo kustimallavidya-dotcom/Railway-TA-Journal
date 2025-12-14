@@ -79,7 +79,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
           {/* TABLE START */}
           <div className="border-2 border-black">
             {/* Table Header */}
-            <div className="grid grid-cols-[8%_8%_6%_6%_10%_10%_5%_6%_15%_6%_10%_10%] text-[10px] leading-tight font-bold text-center border-b border-black">
+            <div className="grid grid-cols-[8%_8%_6%_6%_10%_10%_5%_6%_15%_6%_10%_10%] text-[10px] leading-tight font-bold text-center border-b border-black bg-gray-50 print:bg-transparent">
                 {/* Row 1 Headers */}
                 <div className="border-r border-black p-1 flex items-center justify-center">माह और तारीख<br/>Month & Date</div>
                 <div className="border-r border-black p-1 flex items-center justify-center">गाड़ी का<br/>क्रमांक<br/>Train No.</div>
@@ -124,11 +124,11 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
               const isEmpty = !entry.date && !entry.trainNo;
               
               return (
-                <div key={idx} className="grid grid-cols-[8%_8%_6%_6%_10%_10%_5%_6%_15%_6%_10%_10%] text-[11px] text-center border-b border-black relative h-[9mm]">
+                <div key={idx} className="grid grid-cols-[8%_8%_6%_6%_10%_10%_5%_6%_15%_6%_10%_10%] text-[11px] text-center border-b border-black last:border-b-0 relative h-[9mm]">
                   
-                  {/* The Black Line Strikethrough for empty rows */}
+                  {/* The Black Line Strikethrough for empty rows - made thicker (2px) and z-index adjusted */}
                   {isEmpty && (
-                     <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black z-10 pointer-events-none"></div>
+                     <div className="absolute top-1/2 left-0 w-full h-[1.5px] bg-black z-20 pointer-events-none print:block"></div>
                   )}
 
                   <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap handwriting uppercase">{entry.date}</div>
@@ -148,11 +148,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
             })}
           </div>
 
-          {/* Footer - Only on last page if there's space, else handled gracefully, 
-              but for this task we duplicate footer structure on bottom of page 2 typically 
-              or stick to bottom of every page if form dictates. 
-              Looking at image 2, it's a specific footer. We will render it at the bottom of the last page. */}
-          
+          {/* Footer */}
           {pageIndex === pages.length - 1 && (
              <div className="mt-2 text-[10px] leading-snug">
                <div className="flex gap-2">

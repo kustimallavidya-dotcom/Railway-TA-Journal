@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#1e3a8a" />
+    <meta name="description" content="Official Indian Railways Travelling Allowance Journal App" />
     <title>Railway TA Journal</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -52,6 +56,18 @@
         font-family: 'Courier New', Courier, monospace;
         color: #1a365d; /* Dark Blue pen color */
       }
+      
+      /* Custom Scrollbar for mobile feel */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #888; 
+        border-radius: 3px;
+      }
     </style>
   <script type="importmap">
 {
@@ -64,7 +80,9 @@
 }
 </script>
 </head>
-  <body>
+  <body class="bg-gray-50">
     <div id="root"></div>
+    <!-- CRITICAL FIX: Load the entry point -->
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

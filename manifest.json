@@ -1,0 +1,20 @@
+{
+  "short_name": "Railway TA",
+  "name": "Indian Railways TA Journal",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2855/2855383.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2855/2855383.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1e3a8a",
+  "background_color": "#1e3a8a"
+}
