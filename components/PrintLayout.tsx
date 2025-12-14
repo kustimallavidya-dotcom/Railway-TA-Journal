@@ -8,42 +8,52 @@ interface PrintLayoutProps {
 
 // CONSTANTS FOR PRINT GEOMETRY
 const ROWS_PER_PAGE = 13;
-const TOTAL_ROWS = 26;
+const ROWS_PER_FORM = 26;
 
-// INK STYLES
+// INK STYLES (User Input)
 const INK_STYLE = {
   fontFamily: '"Courier New", Courier, monospace',
   fontWeight: 'bold',
-  color: '#1d4ed8', // Blue-700 to simulate ballpoint ink
+  color: '#1d4ed8', // Blue-700
   textTransform: 'uppercase' as const,
 };
 
 export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) => {
-  // 1. Prepare exact 26 entries
-  const fullJournal: TAEntry[] = [...journal.entries];
+  // 1. Chunk entries into groups of 26 (Each group = 1 Physical Form = 2 Pages)
+  const rawEntries = [...journal.entries];
+  const totalForms = Math.max(1, Math.ceil(rawEntries.length / ROWS_PER_FORM));
   
-  // Fill strictly up to 26 rows
-  while (fullJournal.length < TOTAL_ROWS) {
-    fullJournal.push({ 
-      id: `empty-${Math.random()}`, 
-      date: "", trainNo: "", departTime: "", arriveTime: "", 
-      stationFrom: "", stationTo: "", kms: "", dayNightPercent: "", 
-      purpose: "", rate: "", distancePvt: "", refItem20: "" 
+  const formsToPrint = [];
+
+  for (let i = 0; i < totalForms; i++) {
+    const startIdx = i * ROWS_PER_FORM;
+    const formEntries = rawEntries.slice(startIdx, startIdx + ROWS_PER_FORM);
+    
+    // Fill to strictly 26 rows
+    while (formEntries.length < ROWS_PER_FORM) {
+      formEntries.push({ 
+        id: `empty-${i}-${Math.random()}`, 
+        date: "", trainNo: "", departTime: "", arriveTime: "", 
+        stationFrom: "", stationTo: "", kms: "", dayNightPercent: "", 
+        purpose: "", rate: "", distancePvt: "", refItem20: "" 
+      });
+    }
+    formsToPrint.push({
+      formIndex: i + 1,
+      totalForms: totalForms,
+      page1: formEntries.slice(0, ROWS_PER_PAGE),
+      page2: formEntries.slice(ROWS_PER_PAGE, ROWS_PER_FORM)
     });
   }
 
-  // Split pages
-  const page1Entries = fullJournal.slice(0, ROWS_PER_PAGE);
-  const page2Entries = fullJournal.slice(ROWS_PER_PAGE, TOTAL_ROWS);
-
   // Helper: Is this row essentially empty?
   const isRowEmpty = (entry: TAEntry) => {
-    return !entry.date && !entry.trainNo && !entry.stationFrom && !entry.stationTo;
+    return !entry.date && !entry.trainNo && !entry.stationFrom && !entry.stationTo && !entry.kms;
   };
 
-  // --- HEADER SECTION (Repeats on Page 1 & 2) ---
-  const PageHeader = () => (
-    <div className="text-black font-sans leading-none select-none">
+  // --- HEADER SECTION (Repeats on every page) ---
+  const PageHeader = ({ pageNum, totalPages }: { pageNum: number, totalPages: number }) => (
+    <div className="text-black font-sans leading-none select-none relative">
       {/* Top Line */}
       <div className="flex justify-between items-start border-b border-black pb-1 mb-1">
         <div className="text-[10px] font-bold uppercase tracking-wide">मध्य रेल / CENTRAL RAILWAY</div>
@@ -118,7 +128,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     </div>
   );
 
-  // --- FOOTER SECTION (Page 2 Only) ---
+  // --- FOOTER SECTION (Bottom of Page 2 of any form) ---
   const PageFooter = () => (
     <div className="mt-1 text-[10px] leading-snug font-sans text-black select-none">
       <div className="flex gap-1 items-end mb-1">
@@ -133,7 +143,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
       </div>
       
       {/* Signature Grid */}
-      <div className="grid grid-cols-3 gap-4 mt-8 px-2">
+      <div className="grid grid-cols-3 gap-4 mt-6 px-2">
         <div className="text-center flex flex-col items-center justify-end h-16">
            <div className="font-bold mb-1 w-full"></div>
            <div className="border-t border-black w-3/4 pt-1 font-bold">परिवहन निरीक्षक<br/>Transportation Inspector</div>
@@ -143,7 +153,6 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
            <div className="border-t border-black w-3/4 pt-1 font-bold">नियंत्रक अधिकारी<br/>Controlling Officer</div>
         </div>
         <div className="text-center flex flex-col items-center justify-end h-16">
-           {/* Auto-sign if profile name exists? Optional. Keeping blank for manual sign per form rules usually. */}
            <div className="font-bold mb-1 w-full font-serif italic text-lg"></div>
            <div className="border-t border-black w-3/4 pt-1 font-bold">हस्ताक्षर<br/>Signature</div>
         </div>
@@ -204,17 +213,16 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
           return (
             <div key={idx} className="grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] text-center border-b border-black last:border-b-0 relative h-[9mm]">
               
-              {/* === BLACK LINE STRIKETHROUGH LOGIC === */}
+              {/* === BLACK LINE STRIKETHROUGH LOGIC (MANDATORY) === */}
               {isEmpty ? (
-                 // Full row strikethrough for empty rows
+                 // Full row black line for completely empty rows
                  <div className="absolute top-1/2 left-0 w-full h-[1.5px] bg-black z-20 pointer-events-none print:block"></div>
               ) : (
-                 // If row has some data, strike through SPECIFIC empty cells only
-                 // Note: We use absolute positioning within the grid cells for cleanliness, or just global overlays
+                 // Partial black lines for empty cells in a filled row
                  <>
                    {!entry.date && <div className="absolute top-1/2 left-[0%] w-[8%] h-[1.5px] bg-black z-20"></div>}
                    {!entry.trainNo && <div className="absolute top-1/2 left-[8%] w-[8%] h-[1.5px] bg-black z-20"></div>}
-                   {/* We skip time/station usually as they might be blank for 'staying' entries, but let's strictly follow the prompt 'remaining columns get line' */}
+                   {/* Skip time/stations lines usually, but enforce end columns */}
                    {!entry.kms && <div className="absolute top-1/2 left-[44%] w-[5%] h-[1.5px] bg-black z-20"></div>}
                    {!entry.dayNightPercent && <div className="absolute top-1/2 left-[49%] w-[5%] h-[1.5px] bg-black z-20"></div>}
                    {!entry.distancePvt && <div className="absolute top-1/2 left-[78%] w-[12%] h-[1.5px] bg-black z-20"></div>}
@@ -244,33 +252,34 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
 
   return (
     <div className="print-only w-full mx-auto bg-white">
-      
-      {/* ================= PAGE 1 ================= */}
-      <div className="page-break relative px-[10mm] pt-[5mm] box-border" style={{ width: '297mm', height: '209mm' }}>
-        <PageHeader />
-        
-        {/* Main Table Border */}
-        <div className="border-2 border-black mt-1">
-           <TableHeader />
-           <TableRows entries={page1Entries} />
-        </div>
-        
-        <div className="absolute bottom-2 right-4 text-[9px]">Page 1 of 2</div>
-      </div>
+      {formsToPrint.map((form, index) => (
+        <React.Fragment key={index}>
+            {/* ================= FORM {index+1} PAGE 1 ================= */}
+            <div className="page-break relative px-[10mm] pt-[5mm] box-border" style={{ width: '297mm', height: '209mm' }}>
+                <PageHeader pageNum={1} totalPages={2} />
+                <div className="border-2 border-black mt-1">
+                    <TableHeader />
+                    <TableRows entries={form.page1} />
+                </div>
+                <div className="absolute bottom-2 right-4 text-[9px]">
+                    Form {form.formIndex}/{form.totalForms} - Page 1 of 2
+                </div>
+            </div>
 
-      {/* ================= PAGE 2 ================= */}
-      <div className="relative px-[10mm] pt-[5mm] box-border" style={{ width: '297mm', height: '209mm' }}>
-        <PageHeader />
-        
-        <div className="border-2 border-black mt-1">
-           <TableHeader />
-           <TableRows entries={page2Entries} />
-        </div>
-
-        <PageFooter />
-        <div className="absolute bottom-2 right-4 text-[9px]">Page 2 of 2</div>
-      </div>
-
+            {/* ================= FORM {index+1} PAGE 2 ================= */}
+            <div className={`relative px-[10mm] pt-[5mm] box-border ${index < formsToPrint.length - 1 ? 'page-break' : ''}`} style={{ width: '297mm', height: '209mm' }}>
+                <PageHeader pageNum={2} totalPages={2} />
+                <div className="border-2 border-black mt-1">
+                    <TableHeader />
+                    <TableRows entries={form.page2} />
+                </div>
+                <PageFooter />
+                <div className="absolute bottom-2 right-4 text-[9px]">
+                    Form {form.formIndex}/{form.totalForms} - Page 2 of 2
+                </div>
+            </div>
+        </React.Fragment>
+      ))}
     </div>
   );
 };

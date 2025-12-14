@@ -28,7 +28,7 @@ const STRINGS = {
     installMsg: "Install Railway TA App for easier monthly claims and offline access.",
     installNow: "Install Now",
     later: "Later",
-    printPdf: "Print PDF",
+    printPdf: "Submit & Print",
     backToEdit: "Back to Edit",
     setupProfile: "Setup Profile",
     saveProfile: "Save Profile",
@@ -68,7 +68,7 @@ const STRINGS = {
     installMsg: "सोप्या मासिक दाव्यांसाठी रेल्वे टी.ए. ॲप इंस्टॉल करा.",
     installNow: "इंस्टॉल करा",
     later: "नंतर",
-    printPdf: "PDF प्रिंट करा",
+    printPdf: "सबमिट आणि प्रिंट",
     backToEdit: "मागे जा",
     setupProfile: "प्रोफाइल सेट करा",
     saveProfile: "प्रोफाइल सेव्ह करा",
@@ -88,6 +88,9 @@ const STRINGS = {
     limitReached: "मर्यादा संपली! एका जर्नलमध्ये फक्त 26 ओळी."
   }
 };
+
+// --- STYLE CONSTANTS FOR INPUTS ---
+const INPUT_BLUE_INK = "text-blue-700 font-bold uppercase handwriting tracking-wider";
 
 // --- MAIN APP COMPONENT ---
 
@@ -312,50 +315,50 @@ const ProfileManager = ({ onSave, onCancel, t }: any) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-           <input required className="w-full border-gray-300 border p-3 rounded-lg focus:ring-2 ring-blue-500 uppercase font-semibold" 
+           <input required className={`w-full border-gray-300 border p-3 rounded-lg focus:ring-2 ring-blue-500 uppercase ${INPUT_BLUE_INK}`} 
              value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. MILIND D. MANUGADE" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Designation</label>
-            <input required className="w-full border-gray-300 border p-3 rounded-lg uppercase" 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_BLUE_INK}`} 
               value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} placeholder="PMA/SS" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Station</label>
-            <input required className="w-full border-gray-300 border p-3 rounded-lg uppercase" 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_BLUE_INK}`} 
               value={formData.station} onChange={e => setFormData({...formData, station: e.target.value})} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Pay (Rs)</label>
-            <input required className="w-full border-gray-300 border p-3 rounded-lg" 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
               value={formData.pay} onChange={e => setFormData({...formData, pay: e.target.value})} placeholder="24500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Level</label>
-            <input required className="w-full border-gray-300 border p-3 rounded-lg" 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
               value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} />
           </div>
         </div>
         <div>
            <label className="block text-sm font-medium text-gray-700">P.F. Number</label>
-           <input required className="w-full border-gray-300 border p-3 rounded-lg" 
+           <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
              value={formData.pfNumber} onChange={e => setFormData({...formData, pfNumber: e.target.value})} />
         </div>
         <div className="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
            <div>
              <label className="block text-xs font-medium text-gray-500">Branch</label>
-             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
            </div>
            <div>
              <label className="block text-xs font-medium text-gray-500">Division</label>
-             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
            </div>
            <div>
              <label className="block text-xs font-medium text-gray-500">HQ</label>
-             <input className="w-full bg-white border p-2 rounded text-sm uppercase font-medium" value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
            </div>
         </div>
         
@@ -503,11 +506,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   };
 
   const addEntry = () => {
-    if (entries.length >= 26) {
-      setShowLimitWarning(true);
-      setTimeout(() => setShowLimitWarning(false), 3000);
-      return;
-    }
+    // UNLIMITED ENTRIES ALLOWED - Pagination handled in PrintLayout
     const newEntry = { ...INITIAL_ENTRY, id: Date.now().toString() };
     setEntries([...entries, newEntry]);
     setEditingId(newEntry.id);
@@ -525,11 +524,6 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   };
 
   const duplicateEntry = (entry: TAEntry) => {
-    if (entries.length >= 26) {
-        setShowLimitWarning(true);
-        setTimeout(() => setShowLimitWarning(false), 3000);
-        return;
-    }
     const newEntry = { ...entry, id: Date.now().toString() };
     setEntries([...entries, newEntry]);
     setEditingId(newEntry.id);
@@ -544,7 +538,9 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
             <h2 className="font-bold text-lg">{journal.month} {journal.year}</h2>
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Official TA Journal</p>
          </div>
-         <button onClick={onPrint} className="p-2 rounded-full hover:bg-blue-50 text-blue-700"><Printer className="w-6 h-6" /></button>
+         <button onClick={onPrint} className="p-2 rounded-full hover:bg-blue-50 text-blue-700 flex flex-col items-center">
+             <Printer className="w-6 h-6" />
+         </button>
       </div>
 
       {/* Warning Popup */}
@@ -560,13 +556,6 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                  <button onClick={() => { setShowUnsavedWarning(false); onBack(); }} className="px-5 py-2 bg-red-600 text-white rounded-lg font-bold shadow-lg">{t.exitAnyway}</button>
               </div>
            </div>
-        </div>
-      )}
-
-      {/* Limit Warning Toast */}
-      {showLimitWarning && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 font-bold animate-bounce">
-            {t.limitReached}
         </div>
       )}
 
@@ -625,17 +614,17 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.dateFormat}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" placeholder="DD-MM" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors text-center ${INPUT_BLUE_INK}`} placeholder="DD-MM" 
                                 value={entry.date} onChange={e => updateEntry(entry.id, 'date', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.trainNo}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors text-center ${INPUT_BLUE_INK}`} 
                                 value={entry.trainNo} onChange={e => updateEntry(entry.id, 'trainNo', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.rate}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors text-center ${INPUT_BLUE_INK}`} 
                                 value={entry.rate} onChange={e => updateEntry(entry.id, 'rate', e.target.value)} />
                             </div>
                         </div>
@@ -644,12 +633,12 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.from}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors ${INPUT_BLUE_INK}`} 
                                 value={entry.stationFrom} onChange={e => updateEntry(entry.id, 'stationFrom', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.to}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors ${INPUT_BLUE_INK}`} 
                                 value={entry.stationTo} onChange={e => updateEntry(entry.id, 'stationTo', e.target.value)} />
                             </div>
                         </div>
@@ -658,12 +647,12 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.depart}</label>
-                              <input type="time" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors" 
+                              <input type="time" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors ${INPUT_BLUE_INK}`} 
                                 value={entry.departTime} onChange={e => updateEntry(entry.id, 'departTime', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.arrive}</label>
-                              <input type="time" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors" 
+                              <input type="time" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors ${INPUT_BLUE_INK}`} 
                                 value={entry.arriveTime} onChange={e => updateEntry(entry.id, 'arriveTime', e.target.value)} />
                             </div>
                         </div>
@@ -672,12 +661,12 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.kms}</label>
-                              <input type="number" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                              <input type="number" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors text-center ${INPUT_BLUE_INK}`} 
                                 value={entry.kms} onChange={e => updateEntry(entry.id, 'kms', e.target.value)} />
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.percent}</label>
-                              <select className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting focus:border-blue-500 focus:bg-white transition-colors font-bold" value={entry.dayNightPercent} onChange={e => updateEntry(entry.id, 'dayNightPercent', e.target.value)}>
+                              <select className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors ${INPUT_BLUE_INK}`} value={entry.dayNightPercent} onChange={e => updateEntry(entry.id, 'dayNightPercent', e.target.value)}>
                                  <option value="100%">100%</option>
                                  <option value="70%">70%</option>
                                  <option value="30%">30%</option>
@@ -685,7 +674,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                             </div>
                              <div className="space-y-1">
                               <label className="text-[10px] font-bold text-gray-500 tracking-wider">{t.purpose}</label>
-                              <input type="text" className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 handwriting uppercase focus:border-blue-500 focus:bg-white transition-colors font-bold text-center" 
+                              <input type="text" className={`w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 focus:border-blue-500 focus:bg-white transition-colors text-center ${INPUT_BLUE_INK}`} 
                                 value={entry.purpose} onChange={e => updateEntry(entry.id, 'purpose', e.target.value)} />
                             </div>
                         </div>
@@ -702,7 +691,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
       </div>
 
       {/* FAB */}
-      <button onClick={addEntry} className={`fixed bottom-20 right-6 text-white p-4 rounded-full shadow-xl shadow-blue-300 transition-transform active:scale-95 z-30 ${entries.length >= 26 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
+      <button onClick={addEntry} className="fixed bottom-20 right-6 text-white p-4 rounded-full shadow-xl shadow-blue-300 transition-transform active:scale-95 z-30 bg-blue-600 hover:bg-blue-700">
         <Plus className="w-8 h-8" />
       </button>
     </div>

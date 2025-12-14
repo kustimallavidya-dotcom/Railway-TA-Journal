@@ -37,10 +37,9 @@
         
         html, body {
           width: 297mm;
-          height: 210mm;
+          min-height: 210mm; /* Allow growth for multiple forms */
           margin: 0 !important;
           padding: 0 !important;
-          overflow: hidden;
           background: white;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
@@ -58,7 +57,6 @@
         .print-only {
           display: block !important;
           width: 297mm;
-          /* Reset tailwind defaults if needed */
         }
 
         /* Enforce exact page breaking */
