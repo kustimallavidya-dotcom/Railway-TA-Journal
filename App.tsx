@@ -44,7 +44,8 @@ const STRINGS = {
     kms: "KMS",
     percent: "DAY/NIGHT %",
     purpose: "PURPOSE",
-    tapToAdd: "Tap + to add a daily journey"
+    tapToAdd: "Tap + to add a daily journey",
+    limitReached: "Limit Reached! Maximum 26 rows per journal."
   },
   mr: {
     welcome: "स्वागत आहे",
@@ -83,7 +84,8 @@ const STRINGS = {
     kms: "कि.मी.",
     percent: "दिवस/रात्र %",
     purpose: "उद्देश",
-    tapToAdd: "प्रवास जोडण्यासाठी + दाबा"
+    tapToAdd: "प्रवास जोडण्यासाठी + दाबा",
+    limitReached: "मर्यादा संपली! एका जर्नलमध्ये फक्त 26 ओळी."
   }
 };
 
@@ -272,8 +274,8 @@ export default function App() {
                <Printer className="w-5 h-5 mr-2" /> {t.printPdf}
              </button>
           </div>
-          <div className="pt-20 pb-10 px-4 overflow-auto flex justify-center">
-             <div className="bg-white shadow-2xl mx-auto p-0 origin-top scale-100 md:scale-100 print:scale-100"> 
+          <div className="pt-20 pb-10 px-0 overflow-auto flex justify-center">
+             <div className="bg-white shadow-2xl mx-auto p-0 origin-top scale-75 md:scale-100 print:scale-100 print:shadow-none"> 
                 {/* Print Layout Component Injected Here */}
                 <PrintLayout journal={activeJournal} profile={activeProfile} />
              </div>
@@ -485,6 +487,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   const [entries, setEntries] = useState<TAEntry[]>(journal.entries);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
   
   // Auto Save Logic
   useEffect(() => {
@@ -500,6 +503,11 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   };
 
   const addEntry = () => {
+    if (entries.length >= 26) {
+      setShowLimitWarning(true);
+      setTimeout(() => setShowLimitWarning(false), 3000);
+      return;
+    }
     const newEntry = { ...INITIAL_ENTRY, id: Date.now().toString() };
     setEntries([...entries, newEntry]);
     setEditingId(newEntry.id);
@@ -517,6 +525,11 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   };
 
   const duplicateEntry = (entry: TAEntry) => {
+    if (entries.length >= 26) {
+        setShowLimitWarning(true);
+        setTimeout(() => setShowLimitWarning(false), 3000);
+        return;
+    }
     const newEntry = { ...entry, id: Date.now().toString() };
     setEntries([...entries, newEntry]);
     setEditingId(newEntry.id);
@@ -547,6 +560,13 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                  <button onClick={() => { setShowUnsavedWarning(false); onBack(); }} className="px-5 py-2 bg-red-600 text-white rounded-lg font-bold shadow-lg">{t.exitAnyway}</button>
               </div>
            </div>
+        </div>
+      )}
+
+      {/* Limit Warning Toast */}
+      {showLimitWarning && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 font-bold animate-bounce">
+            {t.limitReached}
         </div>
       )}
 
@@ -682,7 +702,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
       </div>
 
       {/* FAB */}
-      <button onClick={addEntry} className="fixed bottom-20 right-6 bg-blue-600 text-white p-4 rounded-full shadow-xl shadow-blue-300 hover:bg-blue-700 transition-transform active:scale-95 z-30">
+      <button onClick={addEntry} className={`fixed bottom-20 right-6 text-white p-4 rounded-full shadow-xl shadow-blue-300 transition-transform active:scale-95 z-30 ${entries.length >= 26 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}>
         <Plus className="w-8 h-8" />
       </button>
     </div>
