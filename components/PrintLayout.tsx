@@ -6,6 +6,18 @@ interface PrintLayoutProps {
   profile: UserProfile;
 }
 
+// Interface to define the structure of a print form chunk
+// This fixes the "Build Failed" TypeScript error
+interface PrintFormChunk {
+  formIndex: number;
+  totalForms: number;
+  page1: TAEntry[];
+  page2: TAEntry[];
+  page1Total: number;
+  grandTotal: number;
+  grandTotalWords: string;
+}
+
 // CONSTANTS FOR PRINT GEOMETRY
 const ROWS_PER_PAGE = 13;
 const ROWS_PER_FORM = 26;
@@ -49,7 +61,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   const rawEntries = [...journal.entries];
   const totalForms = Math.max(1, Math.ceil(rawEntries.length / ROWS_PER_FORM));
   
-  const formsToPrint = [];
+  // FIXED: Added explicit type PrintFormChunk[] to avoid 'never' type inference error during build
+  const formsToPrint: PrintFormChunk[] = [];
 
   // Helper to calc total of a slice
   const calcTotal = (slice: TAEntry[]) => slice.reduce((acc, curr) => acc + (parseFloat(curr.rate) || 0), 0);

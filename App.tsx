@@ -54,8 +54,9 @@ const STRINGS = {
   }
 };
 
-// --- STYLE CONSTANTS FOR INPUTS (Black Ink) ---
-const INPUT_BLUE_INK = "text-black font-bold uppercase handwriting tracking-wider";
+// --- STYLE CONSTANTS FOR INPUTS (Black & Extra Bold) ---
+// Changed from Blue to Black and increased weight to ExtraBold
+const INPUT_STYLE = "text-black font-extrabold uppercase handwriting tracking-wider placeholder-gray-400";
 
 // --- MAIN APP COMPONENT ---
 
@@ -308,50 +309,50 @@ const ProfileManager = ({ onSave, onCancel, t }: any) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-           <input required className={`w-full border-gray-300 border p-3 rounded-lg focus:ring-2 ring-blue-500 uppercase ${INPUT_BLUE_INK}`} 
+           <input required className={`w-full border-gray-300 border p-3 rounded-lg focus:ring-2 ring-blue-500 uppercase ${INPUT_STYLE}`} 
              value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. MILIND D. MANUGADE" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Designation</label>
-            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_BLUE_INK}`} 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_STYLE}`} 
               value={formData.designation} onChange={e => setFormData({...formData, designation: e.target.value})} placeholder="PMA/SS" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Station</label>
-            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_BLUE_INK}`} 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg uppercase ${INPUT_STYLE}`} 
               value={formData.station} onChange={e => setFormData({...formData, station: e.target.value})} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Pay (Rs)</label>
-            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_STYLE}`} 
               value={formData.pay} onChange={e => setFormData({...formData, pay: e.target.value})} placeholder="24500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Level</label>
-            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
+            <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_STYLE}`} 
               value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} />
           </div>
         </div>
         <div>
            <label className="block text-sm font-medium text-gray-700">P.F. Number</label>
-           <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_BLUE_INK}`} 
+           <input required className={`w-full border-gray-300 border p-3 rounded-lg ${INPUT_STYLE}`} 
              value={formData.pfNumber} onChange={e => setFormData({...formData, pfNumber: e.target.value})} />
         </div>
         <div className="grid grid-cols-3 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
            <div>
              <label className="block text-xs font-medium text-gray-500">Branch</label>
-             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_STYLE}`} value={formData.branch} onChange={e => setFormData({...formData, branch: e.target.value})} />
            </div>
            <div>
              <label className="block text-xs font-medium text-gray-500">Division</label>
-             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_STYLE}`} value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})} />
            </div>
            <div>
              <label className="block text-xs font-medium text-gray-500">HQ</label>
-             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_BLUE_INK}`} value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
+             <input className={`w-full bg-white border p-2 rounded text-sm uppercase ${INPUT_STYLE}`} value={formData.headquarters} onChange={e => setFormData({...formData, headquarters: e.target.value})} />
            </div>
         </div>
         
@@ -489,4 +490,248 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
              </button>
 
              {/* MAIN ACTION: NEW MONTH TAB */}
-             <div
+             <div className="relative -top-6">
+                <button 
+                  onClick={() => setShowMonthPicker(true)}
+                  className="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center transform active:scale-95 transition-all border-4 border-white"
+                >
+                  <Plus className="w-8 h-8" />
+                </button>
+                <div className="text-center text-[10px] font-bold text-blue-700 mt-1 absolute w-24 -left-5 bg-white/80 rounded px-1">
+                   {t.newMonth}
+                </div>
+             </div>
+
+             <button 
+               onClick={() => setActiveTab('profile')} 
+               className={`flex flex-col items-center justify-center w-full h-full ${activeTab === 'profile' ? 'text-blue-700' : 'text-gray-400'}`}
+             >
+               <User className="w-6 h-6 mb-1" />
+               <span className="text-[10px] font-bold">{t.profile}</span>
+             </button>
+          </div>
+       </div>
+
+       {/* Month Picker Modal */}
+       {showMonthPicker && (
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+           <div className="bg-white rounded-2xl p-6 w-full max-w-xs animate-fade-in-up shadow-2xl">
+             <div className="flex items-center justify-center mb-4 text-blue-600">
+               <Calendar className="w-10 h-10" />
+             </div>
+             <h3 className="font-bold text-xl mb-6 text-gray-800 text-center">{t.selectPeriod}</h3>
+             <div className="space-y-4 mb-6">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 ml-1">MONTH</label>
+                  <select className="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 font-semibold" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+                    {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div>
+                   <label className="text-xs font-bold text-gray-500 ml-1">YEAR</label>
+                   <select className="w-full border-2 border-gray-200 p-3 rounded-xl bg-gray-50 font-semibold" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                    {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                   </select>
+                </div>
+             </div>
+             <div className="flex gap-3">
+               <button className="flex-1 bg-gray-100 text-gray-600 p-3 rounded-xl font-bold" onClick={() => setShowMonthPicker(false)}>{t.cancel}</button>
+               <button className="flex-1 bg-blue-700 text-white p-3 rounded-xl font-bold shadow-lg" onClick={() => { onCreateJournal(selectedMonth, selectedYear); setShowMonthPicker(false); }}>{t.create}</button>
+             </div>
+           </div>
+         </div>
+       )}
+    </div>
+  );
+}
+
+const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) => {
+  const [entries, setEntries] = useState<TAEntry[]>(journal.entries || []);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TAEntry | null>(null);
+  const [newEntry, setNewEntry] = useState<TAEntry>({ ...INITIAL_ENTRY, id: '' });
+  
+  // Sync with parent whenever local entries are modified
+  const updateEntries = (newEntries: TAEntry[]) => {
+      setEntries(newEntries);
+      onUpdate({ ...journal, entries: newEntries });
+  };
+
+  const handleSaveEntry = () => {
+     let updatedEntries;
+     if (editingEntry) {
+        updatedEntries = entries.map(e => e.id === editingEntry.id ? { ...newEntry, id: editingEntry.id } : e);
+     } else {
+        updatedEntries = [...entries, { ...newEntry, id: Date.now().toString() }];
+     }
+     updateEntries(updatedEntries);
+     
+     setShowAddModal(false);
+     setEditingEntry(null);
+     setNewEntry({ ...INITIAL_ENTRY, id: '' });
+  };
+
+  const handleDeleteEntry = (id: string) => {
+     if (window.confirm(t.deleteRow)) {
+        updateEntries(entries.filter(e => e.id !== id));
+     }
+  };
+  
+  const handleEdit = (entry: TAEntry) => {
+     setNewEntry(entry);
+     setEditingEntry(entry);
+     setShowAddModal(true);
+  };
+
+  const handleDuplicate = (entry: TAEntry) => {
+     const duplicated = { ...entry, id: Date.now().toString() };
+     updateEntries([...entries, duplicated]);
+  };
+
+  const totalAmount = entries.reduce((sum, e) => sum + (parseFloat(e.rate) || 0), 0);
+
+  return (
+    <div className="pb-20">
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-20 p-4 border-b">
+         <div className="flex justify-between items-center max-w-2xl mx-auto">
+            <button onClick={onBack} className="text-gray-600"><ArrowLeft /></button>
+            <div className="text-center">
+              <h2 className="font-bold text-lg">{journal.month} {journal.year}</h2>
+              <p className="text-xs text-gray-500 font-bold">Total: ₹{totalAmount}</p>
+            </div>
+            <button onClick={onPrint} className="text-blue-700 font-medium text-sm flex items-center bg-blue-50 px-3 py-1 rounded-full">
+              <Printer className="w-4 h-4 mr-1" /> {t.printPdf}
+            </button>
+         </div>
+      </div>
+
+      {/* Entries List */}
+      <div className="max-w-2xl mx-auto p-4 space-y-3">
+         {entries.length === 0 && (
+           <div className="text-center py-10 opacity-50">
+             <p>{t.tapToAdd}</p>
+           </div>
+         )}
+         
+         {entries.map((entry) => (
+           <div key={entry.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
+              <div className="absolute top-3 right-3 flex gap-3">
+                 <button onClick={() => handleEdit(entry)} className="text-gray-400 hover:text-blue-600"><Settings className="w-4 h-4" /></button>
+                 <button onClick={() => handleDuplicate(entry)} className="text-gray-400 hover:text-green-600"><Copy className="w-4 h-4" /></button>
+                 <button onClick={() => handleDeleteEntry(entry.id)} className="text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+              </div>
+              <div className="grid grid-cols-[auto_1fr] gap-4 text-sm mb-2 items-start">
+                 <div className="bg-blue-50 text-blue-800 p-2 rounded-lg text-center min-w-[60px]">
+                    <span className="text-[10px] font-bold block text-blue-400 uppercase">Date</span>
+                    <span className="font-mono font-bold text-lg leading-none">{entry.date.split('/')[0]}</span>
+                 </div>
+                 <div className="pt-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-gray-400 uppercase">Train</span>
+                        <span className="font-mono font-bold bg-gray-100 px-1 rounded">{entry.trainNo}</span>
+                    </div>
+                    <div className="flex items-center text-xs font-mono text-gray-600">
+                         <span>{entry.stationFrom}</span>
+                         <span className="mx-1">→</span>
+                         <span>{entry.stationTo}</span>
+                    </div>
+                 </div>
+              </div>
+              
+              <div className="flex justify-between items-end border-t pt-2 mt-2">
+                 <div className="text-xs font-medium text-gray-500 max-w-[70%] truncate">{entry.purpose}</div>
+                 <div className="font-bold text-lg text-green-700">₹ {entry.rate}</div>
+              </div>
+           </div>
+         ))}
+         
+         <div className="h-10"></div> {/* Spacer */}
+      </div>
+
+       {/* Floating Action Button */}
+       <button 
+          onClick={() => { setNewEntry({...INITIAL_ENTRY, id: ''}); setEditingEntry(null); setShowAddModal(true); }} 
+          className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-30"
+       >
+          <Plus className="w-8 h-8" />
+       </button>
+
+      {/* Modal for Add/Edit */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+           <div className="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 h-[90vh] sm:h-auto overflow-y-auto animate-slide-up shadow-2xl flex flex-col">
+              <div className="flex justify-between items-center mb-6 border-b pb-4">
+                 <h3 className="text-xl font-bold text-gray-800">{editingEntry ? 'Edit Entry' : t.fillDetails}</h3>
+                 <button onClick={() => setShowAddModal(false)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><ArrowLeft className="w-5 h-5" /></button>
+              </div>
+              
+              <div className="space-y-5 overflow-y-auto flex-1 pb-20 sm:pb-0">
+                 {/* Row 1 */}
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.dateFormat}</label>
+                      <input type="text" value={newEntry.date} onChange={e => setNewEntry({...newEntry, date: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl focus:ring-2 ring-blue-500 outline-none ${INPUT_STYLE}`} placeholder="DD/MM" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.trainNo}</label>
+                      <input type="text" value={newEntry.trainNo} onChange={e => setNewEntry({...newEntry, trainNo: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl focus:ring-2 ring-blue-500 outline-none ${INPUT_STYLE}`} placeholder="12345" />
+                    </div>
+                 </div>
+
+                 {/* Row 2 - From/To */}
+                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                     <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-3">
+                        <div>
+                           <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase">{t.from}</label>
+                           <input type="text" value={newEntry.stationFrom} onChange={e => setNewEntry({...newEntry, stationFrom: e.target.value})} className={`w-full border-gray-300 border p-2 rounded-lg text-center ${INPUT_STYLE}`} placeholder="STN" />
+                        </div>
+                        <div className="text-gray-300 mt-4">➔</div>
+                        <div>
+                           <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase">{t.to}</label>
+                           <input type="text" value={newEntry.stationTo} onChange={e => setNewEntry({...newEntry, stationTo: e.target.value})} className={`w-full border-gray-300 border p-2 rounded-lg text-center ${INPUT_STYLE}`} placeholder="STN" />
+                        </div>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <input type="text" value={newEntry.departTime} onChange={e => setNewEntry({...newEntry, departTime: e.target.value})} className={`w-full border-gray-300 border p-2 rounded-lg text-center ${INPUT_STYLE}`} placeholder="Dep HH:MM" />
+                        <input type="text" value={newEntry.arriveTime} onChange={e => setNewEntry({...newEntry, arriveTime: e.target.value})} className={`w-full border-gray-300 border p-2 rounded-lg text-center ${INPUT_STYLE}`} placeholder="Arr HH:MM" />
+                     </div>
+                 </div>
+
+                 {/* Row 3 */}
+                 <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.kms}</label>
+                      <input type="number" value={newEntry.kms} onChange={e => setNewEntry({...newEntry, kms: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.percent}</label>
+                      <select value={newEntry.dayNightPercent} onChange={e => setNewEntry({...newEntry, dayNightPercent: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl bg-white ${INPUT_STYLE}`}>
+                        <option value="100%">100%</option>
+                        <option value="70%">70%</option>
+                        <option value="30%">30%</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.rate}</label>
+                      <input type="number" value={newEntry.rate} onChange={e => setNewEntry({...newEntry, rate: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.purpose}</label>
+                    <input type="text" value={newEntry.purpose} onChange={e => setNewEntry({...newEntry, purpose: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                 </div>
+              </div>
+              
+              <div className="pt-4 border-t mt-4 sticky bottom-0 bg-white">
+                   <button onClick={handleSaveEntry} className="w-full bg-blue-700 text-white p-4 rounded-xl font-bold shadow-lg active:scale-95 transition-transform flex justify-center items-center text-lg">
+                     <Save className="w-6 h-6 mr-2" /> {t.done}
+                   </button>
+              </div>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
