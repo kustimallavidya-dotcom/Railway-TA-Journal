@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download, TrainFront, Share2 } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
@@ -31,7 +31,7 @@ const STRINGS = {
     installNow: "Install Now",
     later: "Later",
     printPdf: "Submit & Print",
-    downloadPdf: "Download PDF",
+    downloadPdf: "Share / Save PDF",
     downloading: "Generating PDF...",
     backToEdit: "Back to Edit",
     setupProfile: "Setup Profile",
@@ -55,8 +55,56 @@ const STRINGS = {
 };
 
 // --- STYLE CONSTANTS FOR INPUTS (Black & Extra Bold) ---
-// Changed from Blue to Black and increased weight to ExtraBold
 const INPUT_STYLE = "text-black font-extrabold uppercase handwriting tracking-wider placeholder-gray-400";
+
+// --- SVG LOGO COMPONENT (Eliminates need for external image file) ---
+const RailwayLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+      </filter>
+    </defs>
+    {/* Outer Ring */}
+    <circle cx="100" cy="100" r="95" fill="#1e3a8a" stroke="white" strokeWidth="4" filter="url(#shadow)" />
+    {/* Inner White Circle */}
+    <circle cx="100" cy="100" r="70" fill="white" />
+    {/* Stars */}
+    <circle cx="100" cy="15" r="3" fill="white" />
+    <circle cx="100" cy="185" r="3" fill="white" />
+    <circle cx="15" cy="100" r="3" fill="white" />
+    <circle cx="185" cy="100" r="3" fill="white" />
+    
+    {/* Text Curve Path Top */}
+    <path id="curveTop" d="M 30,100 A 70,70 0 0,1 170,100" fill="none" />
+    {/* Text Curve Path Bottom */}
+    <path id="curveBottom" d="M 35,100 A 65,65 0 0,0 165,100" fill="none" />
+
+    {/* Text */}
+    <text width="200" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" letterSpacing="2">
+      {/* @ts-ignore */}
+      <textPath xlinkHref="#curveTop" startOffset="50%" textAnchor="middle" side="left">
+        INDIAN RAILWAYS
+      </textPath>
+    </text>
+    
+    <text width="200" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" letterSpacing="2">
+       {/* @ts-ignore */}
+       <textPath xlinkHref="#curveBottom" startOffset="50%" textAnchor="middle" side="right">
+        भारतीय रेल
+      </textPath>
+    </text>
+
+    {/* Train Engine Icon Center */}
+    <g transform="translate(65, 65) scale(0.35)">
+       <path fill="#1e3a8a" d="M100 0C44.8 0 0 44.8 0 100s44.8 100 100 100 100-44.8 100-100S155.2 0 100 0zm0 180c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"/>
+       <path fill="#d97706" d="M140 130H60v-60h80v60zm-10-50H70v40h60V80z"/>
+       <circle fill="#1e3a8a" cx="75" cy="145" r="10"/>
+       <circle fill="#1e3a8a" cx="125" cy="145" r="10"/>
+       <rect fill="#1e3a8a" x="95" y="60" width="10" height="20"/>
+    </g>
+  </svg>
+);
 
 // --- MAIN APP COMPONENT ---
 
@@ -154,23 +202,52 @@ export default function App() {
 
     const element = document.getElementById('print-content');
     if (!element) return;
+    
+    const fileName = `TA_Journal_${activeJournal.month}_${activeJournal.year}.pdf`;
 
-    // Direct PDF Download Configuration
+    // PDF Configuration
     const opt = {
       margin: 0,
-      filename: `TA_Journal_${activeJournal.month}_${activeJournal.year}.pdf`,
+      filename: fileName,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
 
-    // Use html2pdf lib added in index.html
+    // Use html2pdf lib
     // @ts-ignore
     if (window.html2pdf) {
       // @ts-ignore
-      window.html2pdf().set(opt).from(element).save().then(() => {
-        setIsDownloading(false);
+      const worker = window.html2pdf().set(opt).from(element);
+      
+      // LOGIC: Instead of just saving, we try to Share first
+      worker.output('blob').then(async (blob: Blob) => {
+         const file = new File([blob], fileName, { type: 'application/pdf' });
+         
+         // Check if Web Share API is supported and can share files
+         if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+               await navigator.share({
+                  files: [file],
+                  title: 'Railway TA Journal',
+                  text: `Here is the TA Journal for ${activeJournal.month} ${activeJournal.year}`
+               });
+               setIsDownloading(false);
+            } catch (error: any) {
+               // User cancelled share or error
+               if (error.name !== 'AbortError') {
+                  console.log('Share failed, saving instead');
+                  worker.save().then(() => setIsDownloading(false));
+               } else {
+                  setIsDownloading(false);
+               }
+            }
+         } else {
+            // Fallback for desktop or unsupported browsers
+            worker.save().then(() => setIsDownloading(false));
+         }
       });
+
     } else {
       alert("PDF Generator loading... please try again in a second.");
       setIsDownloading(false);
@@ -183,10 +260,12 @@ export default function App() {
     return (
       <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/train-pattern.png')]"></div>
-        {/* Updated Splash Logo - Local File 'logo.png' - Increased Size */}
-        <div className="animate-pulse mb-8 relative z-10 p-6 bg-white rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-           <img src="/logo.png" alt="Railway Logo" className="w-40 h-40 object-contain drop-shadow-xl" />
+        
+        {/* Updated Splash Logo - Using Internal Component instead of File */}
+        <div className="animate-pulse mb-8 relative z-10 p-4 bg-white rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)] border-4 border-blue-800">
+           <RailwayLogo className="w-32 h-32" />
         </div>
+        
         <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10 text-white drop-shadow-md">Railway TA Journal</h1>
         <p className="text-blue-200 text-lg z-10 font-medium">Simplify Your Journey Claims</p>
         <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide text-center">
@@ -260,7 +339,7 @@ export default function App() {
                <ArrowLeft className="w-5 h-5 mr-1" /> {t.backToEdit}
              </button>
              
-             {/* DIRECT DOWNLOAD BUTTON */}
+             {/* SHARE / DOWNLOAD BUTTON */}
              <button 
                onClick={handleDownloadPDF} 
                disabled={isDownloading}
@@ -270,7 +349,7 @@ export default function App() {
                  <span>{t.downloading}</span>
                ) : (
                  <>
-                   <Download className="w-5 h-5 mr-2" /> {t.downloadPdf}
+                   <Share2 className="w-5 h-5 mr-2" /> {t.downloadPdf}
                  </>
                )}
              </button>
@@ -734,4 +813,4 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
       )}
     </div>
   );
-};
+}
