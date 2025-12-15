@@ -10,11 +10,11 @@ interface PrintLayoutProps {
 const ROWS_PER_PAGE = 13;
 const ROWS_PER_FORM = 26;
 
-// INK STYLES (User Input) - Max Boldness and Larger Size
+// INK STYLES (User Input) - Max Boldness and Black Color
 const INK_STYLE = {
   fontFamily: '"Courier New", Courier, monospace',
   fontWeight: '900', // Maximum Boldness
-  color: '#1d4ed8', // Blue-700
+  color: '#000000', // Black Color
   textTransform: 'uppercase' as const,
   fontSize: '13px', 
   letterSpacing: '0.5px'
