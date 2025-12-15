@@ -249,9 +249,9 @@ export default function App() {
           profile={activeProfile}
           profiles={profiles}
           journals={journals.filter(j => j.profileId === activeProfile.id)}
-          onSwitchProfile={(id) => setActiveProfileId(id)}
+          onSwitchProfile={(id: string) => setActiveProfileId(id)}
           onAddProfile={() => setView('profile')}
-          onOpenJournal={(id) => { setActiveJournalId(id); setView('editor'); }}
+          onOpenJournal={(id: string) => { setActiveJournalId(id); setView('editor'); }}
           onCreateJournal={handleCreateJournal}
           lang={lang}
           toggleLang={toggleLang}
@@ -264,7 +264,7 @@ export default function App() {
         <JournalEditor 
           journal={activeJournal}
           profile={activeProfile}
-          onUpdate={(updatedJournal) => {
+          onUpdate={(updatedJournal: MonthJournal) => {
             setJournals(journals.map(j => j.id === updatedJournal.id ? updatedJournal : j));
           }}
           onBack={() => setView('dashboard')}
