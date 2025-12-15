@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, Home, Calendar, History, Download } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
 
-// --- TRANSLATIONS ---
+// --- TRANSLATIONS (Only English Used) ---
 const STRINGS = {
   en: {
     welcome: "Welcome",
@@ -51,52 +51,6 @@ const STRINGS = {
     tapToAdd: "Tap + to add a daily journey",
     limitReached: "Limit Reached! Maximum 26 rows per journal.",
     developer: "Developed by"
-  },
-  mr: {
-    welcome: "स्वागत आहे",
-    switchProfile: "प्रोफाइल बदला",
-    addNewProfile: "नवीन प्रोफाइल जोडा",
-    newJournal: "नवीन टी.ए. जर्नल",
-    newMonth: "नवीन महिना",
-    history: "इतिहास",
-    profile: "प्रोफाइल",
-    totalJournals: "एकूण जर्नल्स",
-    recent: "माझे जुने जर्नल्स",
-    noJournals: "अद्याप कोणतीही जर्नल्स नाहीत. एक तयार करा!",
-    entries: "नोंदी",
-    lastMod: "शेवटचा बदल",
-    create: "तयार करा",
-    cancel: "रद्द करा",
-    selectPeriod: "महिना आणि वर्ष निवडा",
-    unsavedTitle: "सेव्ह केलेले नाही",
-    unsavedMsg: "तुमचे बदल सेव्ह केलेले नाहीत. तुम्हाला नक्की बाहेर पडायचे आहे का?",
-    exitAnyway: "बाहेर पडा",
-    deleteRow: "ही ओळ हटवायची?",
-    installTitle: "ॲप इंस्टॉल करा",
-    installMsg: "सोप्या मासिक दाव्यांसाठी रेल्वे टी.ए. ॲप इंस्टॉल करा.",
-    installNow: "इंस्टॉल करा",
-    later: "नंतर",
-    printPdf: "सबमिट आणि प्रिंट",
-    downloadPdf: "PDF डाउनलोड करा",
-    downloading: "PDF तयार होत आहे...",
-    backToEdit: "मागे जा",
-    setupProfile: "प्रोफाइल सेट करा",
-    saveProfile: "प्रोफाइल सेव्ह करा",
-    fillDetails: "दैनंदिन टी.ए. माहिती भरा",
-    done: "पूर्ण झाले",
-    dateFormat: "दिनांक",
-    trainNo: "गाडी क्र.",
-    rate: "दर",
-    from: "कोठून",
-    to: "कोठे",
-    depart: "प्रस्थान",
-    arrive: "आगमन",
-    kms: "कि.मी.",
-    percent: "दिवस/रात्र %",
-    purpose: "उद्देश",
-    tapToAdd: "प्रवास जोडण्यासाठी + दाबा",
-    limitReached: "मर्यादा संपली! एका जर्नलमध्ये फक्त 26 ओळी.",
-    developer: "Developed by"
   }
 };
 
@@ -111,7 +65,6 @@ export default function App() {
   const [activeProfileId, setActiveProfileId] = useState<string | null>(null);
   const [journals, setJournals] = useState<MonthJournal[]>([]);
   const [activeJournalId, setActiveJournalId] = useState<string | null>(null);
-  const [lang, setLang] = useState<'en' | 'mr'>('en');
   const [isDownloading, setIsDownloading] = useState(false);
   
   // Install Prompt State
@@ -124,11 +77,9 @@ export default function App() {
     // Load data from local storage
     const savedProfiles = localStorage.getItem('railway_ta_profiles');
     const savedJournals = localStorage.getItem('railway_ta_journals');
-    const savedLang = localStorage.getItem('railway_ta_lang');
     
     if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
     if (savedJournals) setJournals(JSON.parse(savedJournals));
-    if (savedLang) setLang(savedLang as 'en' | 'mr');
 
     // Splash screen timer
     const timer = setTimeout(() => {
@@ -161,13 +112,7 @@ export default function App() {
     localStorage.setItem('railway_ta_journals', JSON.stringify(journals));
   }, [journals]);
   
-  const toggleLang = () => {
-    const newLang = lang === 'en' ? 'mr' : 'en';
-    setLang(newLang);
-    localStorage.setItem('railway_ta_lang', newLang);
-  };
-
-  const t = STRINGS[lang];
+  const t = STRINGS.en;
 
   // --- HANDLERS ---
 
@@ -237,10 +182,10 @@ export default function App() {
     return (
       <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/train-pattern.png')]"></div>
-        <div className="animate-bounce mb-6 relative z-10">
-           <svg className="w-24 h-24 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <div className="animate-pulse mb-8 relative z-10 p-4 bg-white rounded-full shadow-2xl">
+           <img src="https://cdn-icons-png.flaticon.com/512/2855/2855383.png" alt="Railway Logo" className="w-32 h-32" />
         </div>
-        <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10">Railway TA Journal</h1>
+        <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10 text-white drop-shadow-md">Railway TA Journal</h1>
         <p className="text-blue-200 text-lg z-10">Simplify Your Claims</p>
         <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide text-center">
           {t.developer} <br/> {DEVELOPER_NAME}
@@ -287,8 +232,6 @@ export default function App() {
           onAddProfile={() => setView('profile')}
           onOpenJournal={(id: string) => { setActiveJournalId(id); setView('editor'); }}
           onCreateJournal={handleCreateJournal}
-          lang={lang}
-          toggleLang={toggleLang}
           t={t}
         />
       )}
@@ -418,7 +361,7 @@ const ProfileManager = ({ onSave, onCancel, t }: any) => {
   );
 };
 
-const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal, lang, toggleLang, t }: any) => {
+const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal, t }: any) => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -447,9 +390,6 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
                   </div>
               </div>
             </div>
-            <button onClick={toggleLang} className="flex items-center text-xs bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full font-medium">
-               <Globe className="w-3 h-3 mr-1 text-blue-600" /> {lang === 'en' ? 'मराठी' : 'English'}
-            </button>
          </div>
        </div>
 
