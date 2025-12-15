@@ -32,12 +32,12 @@
       @media print {
         @page {
           size: A4 landscape;
-          margin: 0; /* Important: We handle margins inside the container */
+          margin: 0; /* ABSOLUTELY ESSENTIAL: Prevents browser headers/footers */
         }
         
         html, body {
-          width: 297mm;
-          min-height: 210mm; 
+          width: 100%;
+          min-height: 100%; 
           margin: 0 !important;
           padding: 0 !important;
           background: white;
