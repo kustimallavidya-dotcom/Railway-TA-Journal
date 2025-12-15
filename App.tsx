@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, LogOut, Home, Calendar, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, Home, Calendar, History } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
-import { ROWS_PER_PAGE, MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
+import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
 
 // --- TRANSLATIONS ---
