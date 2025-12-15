@@ -178,16 +178,16 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     <div className="mt-2 font-sans text-black select-none">
       
       {/* BOXED TOTAL IN WORDS */}
-      <div className="border border-black p-2 mb-4 text-[10px] font-bold bg-gray-50 flex items-center shadow-sm">
+      <div className="border border-black p-2 mb-2 text-[10px] font-bold bg-gray-50 flex items-center shadow-sm">
         <span className="mr-2 uppercase">Grand Total (in words) :</span>
         <span className="flex-1 border-b border-dotted border-black" style={INK_STYLE}>
             {grandTotalWords} ONLY
         </span>
       </div>
 
-      {/* CERTIFICATE TEXT */}
-      <div className="text-[9px] leading-tight text-justify font-medium mb-4">
-        <div className="mb-2">
+      {/* CERTIFICATE TEXT - Slightly reduced font size to fit */}
+      <div className="text-[8px] leading-tight text-justify font-medium mb-2">
+        <div className="mb-1">
             मैं प्रमाणित करता हूं कि उपर्युक्त <span className="border-b border-black inline-block w-32"></span> उस अवधि के दौरान, जिसके लिये इस बिल में भत्ता मांगा गया है रेलवे के कार्य से ड्यूटी पर मुख्यालय स्टेशन से बाहर गया था । इस अधिकारी ने रेलमार्ग /समुद्रमार्ग /सडक-वाहन /वायुमार्ग से यात्रा की और इसे मुफ्त पास या सरकारी स्थानीय निधि या भारत सरकार के खर्च पर यात्रा करने की सुविधा दी गयी/ नही दी गयी थी ।
             <br/>
             मैं प्रमाणित करता हूं कि ड्यूटी पास पर की गयी यात्रा तथा विराम के बारे में जिसके लिये इस बिल में यात्रा भत्ता /दैनिक भत्ता मांगा गया है, किसी भी स्रोत से कोई यात्रा भत्ता/दैनिक भत्ता या पारिश्रमिक नहीं लिया गया है ।
@@ -199,8 +199,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         </div>
       </div>
       
-      {/* Signature Grid - 4 Columns */}
-      <div className="grid grid-cols-4 gap-2 mt-12 px-1 items-start font-bold text-[8px] text-center leading-tight">
+      {/* Signature Grid - Reduced Top Margin to Fix Overlap */}
+      <div className="grid grid-cols-4 gap-2 mt-6 px-1 items-start font-bold text-[8px] text-center leading-tight">
         
         {/* 1. Countersigned */}
         <div className="flex flex-col items-center">
@@ -233,7 +233,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
       </div>
 
       {/* Final Note */}
-      <div className="mt-4 pt-1 border-t border-black text-[8px] leading-tight text-justify">
+      <div className="mt-2 pt-1 border-t border-black text-[7px] leading-tight text-justify">
         <span className="font-bold">टिप्पणी :</span> किसी एक रेलवे से दूसरी रेलवे पर स्थानांतरण होने पर यात्रा भत्ता बिल पर यह प्रमाणित किया जाना चाहिए कि मुक्त पास या सरकारी खर्च पर यात्रा करने की सुविधा दी गई थी या नहीं |
         <br/>
         <span className="font-bold">Note :-</span> On transfer from one Railway to another, certificate whether or not a free pass or Locomotion at Government expenses was allowed or not should be recorded on T.A. Bills.
@@ -242,24 +242,26 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   );
 
   // --- TABLE HEADER (Compact Heights) ---
-  const TableHeader = ({ showLabels = true }: { showLabels?: boolean }) => (
+  const TableHeader = ({ isPage1 }: { isPage1: boolean }) => (
     <div className="grid grid-cols-[8%_8%_6%_6%_16%_5%_5%_18%_6%_12%_10%] text-[8px] leading-none font-bold text-center border-b border-black bg-white select-none">
-        {/* Row 1 Headers */}
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>माह और तारीख</span><span className="mt-0.5">Month & Date</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>गाड़ी का क्रमांक</span><span className="mt-0.5">Train No.</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>प्रस्थान समय</span><span className="mt-0.5">Time left</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>आगमन समय</span><span className="mt-0.5">Time arrived</span></>}
-        </div>
         
-        {/* Station Combined */}
-        {showLabels ? (
+        {/* ROW 1: Labels (Only shown on Page 1) */}
+        {isPage1 && (
+          <>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>माह और तारीख</span><span className="mt-0.5">Month & Date</span>
+            </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>गाड़ी का क्रमांक</span><span className="mt-0.5">Train No.</span>
+            </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>प्रस्थान समय</span><span className="mt-0.5">Time left</span>
+            </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>आगमन समय</span><span className="mt-0.5">Time arrived</span>
+            </div>
+            
+            {/* Station Combined */}
             <div className="border-r border-black h-[12mm]">
                 <div className="border-b border-black h-[50%] flex items-center justify-center">
                    स्टेशन / Station
@@ -273,48 +275,50 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
                     </div>
                 </div>
             </div>
-        ) : (
-            <div className="border-r border-black h-[12mm] grid grid-cols-2">
-                <div className="border-r border-black h-full"></div>
-                <div className="h-full"></div>
+
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>कि. मी.</span><span className="mt-0.5">Kms.</span>
             </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>दिन/रात</span><span className="mt-0.5">Day/Night</span>
+            </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>यात्रा का उद्देश्य</span><span className="mt-0.5">Object of journey</span>
+            </div>
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+              <span>दर</span><span className="mt-0.5">Rate</span>
+            </div>
+            
+            {/* Column 11 & 12 */}
+            <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
+                <span className="leading-tight">दूरी जिसके लिये प्राईवेट / सार्वजनिक<br/>सवारी का उपयोग किया गया<br/><span className="font-normal text-[7px] block mt-0.5">Distance for which private/public conveyance is used</span></span>
+            </div>
+            <div className="p-0.5 flex flex-col justify-center h-[12mm]">
+                <span className="leading-tight">दूरी अनुसूची के मद 20 का संदर्भ<br/><span className="font-normal text-[7px] block mt-0.5">Reference to Item 20 In Schedule of distance</span></span>
+            </div>
+          </>
         )}
 
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>कि. मी.</span><span className="mt-0.5">Kms.</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>दिन/रात</span><span className="mt-0.5">Day/Night</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>यात्रा का उद्देश्य</span><span className="mt-0.5">Object of journey</span></>}
-        </div>
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-           {showLabels && <><span>दर</span><span className="mt-0.5">Rate</span></>}
-        </div>
-        
-        {/* Column 11 & 12 */}
-        <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
-            {showLabels && <span className="leading-tight">दूरी जिसके लिये प्राईवेट / सार्वजनिक<br/>सवारी का उपयोग किया गया<br/><span className="font-normal text-[7px] block mt-0.5">Distance for which private/public conveyance is used</span></span>}
-        </div>
-        <div className="p-0.5 flex flex-col justify-center h-[12mm]">
-            {showLabels && <span className="leading-tight">दूरी अनुसूची के मद 20 का संदर्भ<br/><span className="font-normal text-[7px] block mt-0.5">Reference to Item 20 In Schedule of distance</span></span>}
-        </div>
+        {/* If Page 2, we need empty placeholders or just skip to the numbers? 
+            Better to keep the grid integrity but just render empty/minimal height if needed, 
+            but the user asked for numbers in the 'top row'. 
+            So on Page 2, we skip the text block entirely.
+        */}
 
-        {/* Column Numbers */}
-        <div className="col-span-11 grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] border-t border-black h-[3mm] items-center text-[7px]">
-             <div className="border-r border-black">1</div>
-             <div className="border-r border-black">2</div>
-             <div className="border-r border-black">3</div>
-             <div className="border-r border-black">4</div>
-             <div className="border-r border-black">5</div>
-             <div className="border-r border-black">6</div>
-             <div className="border-r border-black">7</div>
-             <div className="border-r border-black">8</div>
-             <div className="border-r border-black">9</div>
-             <div className="border-r border-black">10</div>
-             <div className="border-r border-black">11</div>
-             <div>12</div>
+        {/* Column Numbers (Always Visible, acts as the main header on Page 2) */}
+        <div className={`col-span-11 grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] ${isPage1 ? 'border-t' : ''} border-black h-[5mm] items-center text-[8px] bg-gray-50`}>
+             <div className="border-r border-black h-full flex items-center justify-center">1</div>
+             <div className="border-r border-black h-full flex items-center justify-center">2</div>
+             <div className="border-r border-black h-full flex items-center justify-center">3</div>
+             <div className="border-r border-black h-full flex items-center justify-center">4</div>
+             <div className="border-r border-black h-full flex items-center justify-center">5</div>
+             <div className="border-r border-black h-full flex items-center justify-center">6</div>
+             <div className="border-r border-black h-full flex items-center justify-center">7</div>
+             <div className="border-r border-black h-full flex items-center justify-center">8</div>
+             <div className="border-r border-black h-full flex items-center justify-center">9</div>
+             <div className="border-r border-black h-full flex items-center justify-center">10</div>
+             <div className="border-r border-black h-full flex items-center justify-center">11</div>
+             <div className="h-full flex items-center justify-center">12</div>
         </div>
     </div>
   );
@@ -372,7 +376,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
             <div className="page-break relative px-[5mm] pt-[5mm] box-border" style={{ width: '297mm', height: '209mm' }}>
                 <PageHeader />
                 <div className="border-2 border-black mt-0.5">
-                    <TableHeader showLabels={true} />
+                    <TableHeader isPage1={true} />
                     <TableRows entries={form.page1} />
                     <TotalRow label="Total (Carried Over)" amount={form.page1Total} />
                 </div>
@@ -391,7 +395,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
             {/* ================= FORM {index+1} PAGE 2 ================= */}
             <div className={`relative px-[5mm] pt-[15mm] box-border ${index < formsToPrint.length - 1 ? 'page-break' : ''}`} style={{ width: '297mm', height: '209mm' }}>
                 <div className="border-2 border-black">
-                    <TableHeader showLabels={false} />
+                    <TableHeader isPage1={false} />
                     <TableRows entries={form.page2} />
                     <TotalRow label="Grand Total" amount={form.grandTotal} />
                 </div>
