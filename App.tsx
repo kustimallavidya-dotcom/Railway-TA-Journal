@@ -25,7 +25,8 @@ const STRINGS = {
     unsavedTitle: "Unsaved Changes",
     unsavedMsg: "You have unsaved changes. Do you really want to exit?",
     exitAnyway: "Exit Anyway",
-    deleteRow: "Delete this row?",
+    deleteRow: "Are you sure you want to delete this ENTRY?",
+    deleteJournalConfirm: "Are you sure you want to delete this entire MONTH JOURNAL? This cannot be undone.",
     installTitle: "Install App",
     installMsg: "Install Railway TA App for easier monthly claims and offline access.",
     installNow: "Install Now",
@@ -257,6 +258,12 @@ export default function App() {
     setView('editor');
   };
 
+  // --- DELETE HANDLER FOR JOURNALS ---
+  const handleDeleteJournal = (id: string) => {
+    const updatedJournals = journals.filter(j => j.id !== id);
+    setJournals(updatedJournals);
+  };
+
   const handleInstallApp = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -386,6 +393,7 @@ export default function App() {
           onAddProfile={() => setView('profile')}
           onOpenJournal={(id: string) => { setActiveJournalId(id); setView('editor'); }}
           onCreateJournal={handleCreateJournal}
+          onDeleteJournal={handleDeleteJournal}
           t={t}
         />
       )}
@@ -515,7 +523,7 @@ const ProfileManager = ({ onSave, onCancel, t }: any) => {
   );
 };
 
-const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal, t }: any) => {
+const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile, onOpenJournal, onCreateJournal, onDeleteJournal, t }: any) => {
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
@@ -587,8 +595,8 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
                  </div>
                ) : (
                  journals.map((j: MonthJournal) => (
-                   <div key={j.id} onClick={() => onOpenJournal(j.id)} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:shadow-md transition active:bg-gray-50">
-                      <div className="flex items-center">
+                   <div key={j.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center transition hover:shadow-md active:bg-gray-50">
+                      <div onClick={() => onOpenJournal(j.id)} className="flex items-center flex-1 cursor-pointer">
                         <div className="bg-blue-50 text-blue-700 w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm mr-4 border border-blue-100">
                           {j.month.substring(0,3)}
                         </div>
@@ -597,7 +605,25 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
                           <p className="text-xs text-gray-500 font-medium">{j.entries.length} {t.entries}</p>
                         </div>
                       </div>
-                      <ArrowLeft className="w-5 h-5 rotate-180 text-gray-300" />
+                      
+                      {/* ACTIONS: DELETE & OPEN */}
+                      <div className="flex items-center gap-2">
+                          <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if(window.confirm(t.deleteJournalConfirm)) {
+                                    onDeleteJournal(j.id);
+                                }
+                            }}
+                            className="p-2 text-gray-300 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
+                            title="Delete Journal"
+                          >
+                             <Trash2 className="w-5 h-5" />
+                          </button>
+                          <div onClick={() => onOpenJournal(j.id)} className="p-2 cursor-pointer text-gray-300 hover:text-blue-600">
+                             <ArrowLeft className="w-5 h-5 rotate-180" />
+                          </div>
+                      </div>
                    </div>
                  ))
                )}
