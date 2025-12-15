@@ -104,18 +104,18 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         </div>
       </div>
       
-      {/* Title - Corrected Layout - Removed tracking-widest from Hindi title */}
-      <div className="text-center mb-2 mt-3 flex flex-col items-center">
-        <h1 className="font-black text-3xl scale-y-110 mb-1 font-devanagari">
+      {/* Title - Single Line Layout (Hindi & English) */}
+      <div className="text-center mb-1 mt-2 flex items-end justify-center gap-4">
+        <h1 className="font-black text-2xl font-devanagari leading-none pb-0.5">
           यात्रा भत्ता जर्नल
         </h1>
-        <h2 className="font-bold text-xl uppercase tracking-widest border-b-2 border-black inline-block pb-0.5">
+        <h2 className="font-bold text-xl uppercase tracking-wider border-b-2 border-black leading-none pb-0.5">
           TRAVELLING ALLOWANCE JOURNAL
         </h2>
       </div>
 
       {/* Rule Line */}
-      <div className="flex justify-center text-[10px] mb-1">
+      <div className="flex justify-center text-[10px] mb-1 mt-2">
         <span className="mr-2 font-medium font-devanagari">नियम जिससे शासित है / Rule by which governed</span>
         <span className="border-b border-dotted border-black px-4 min-w-[100px] text-center" style={INK_STYLE}>New Rule</span>
       </div>
