@@ -10,14 +10,38 @@ interface PrintLayoutProps {
 const ROWS_PER_PAGE = 13;
 const ROWS_PER_FORM = 26;
 
-// INK STYLES (User Input)
+// INK STYLES (User Input) - Max Boldness and Larger Size
 const INK_STYLE = {
   fontFamily: '"Courier New", Courier, monospace',
-  fontWeight: '800', // Extra Bold
+  fontWeight: '900', // Maximum Boldness
   color: '#1d4ed8', // Blue-700
   textTransform: 'uppercase' as const,
-  fontSize: '12px', 
+  fontSize: '14px', // Increased from 12px
   letterSpacing: '0.5px'
+};
+
+// HELPER: Number to Words (Indian/Simple Format)
+const numberToWords = (num: number): string => {
+  const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  if (num === 0) return 'Zero';
+
+  const nString = num.toString();
+  if (nString.length > 9) return 'Overflow';
+
+  const regex = /^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/;
+  const parts = ('000000000' + nString).substr(-9).match(regex);
+  if (!parts) return '';
+
+  let str = '';
+  str += (Number(parts[1]) !== 0) ? (a[Number(parts[1])] || b[Number(parts[1][0])] + ' ' + a[Number(parts[1][1])]) + 'Crore ' : '';
+  str += (Number(parts[2]) !== 0) ? (a[Number(parts[2])] || b[Number(parts[2][0])] + ' ' + a[Number(parts[2][1])]) + 'Lakh ' : '';
+  str += (Number(parts[3]) !== 0) ? (a[Number(parts[3])] || b[Number(parts[3][0])] + ' ' + a[Number(parts[3][1])]) + 'Thousand ' : '';
+  str += (Number(parts[4]) !== 0) ? (a[Number(parts[4])] || b[Number(parts[4][0])] + ' ' + a[Number(parts[4][1])]) + 'Hundred ' : '';
+  str += (Number(parts[5]) !== 0) ? ((str !== '') ? 'and ' : '') + (a[Number(parts[5])] || b[Number(parts[5][0])] + ' ' + a[Number(parts[5][1])]) : '';
+
+  return str.trim();
 };
 
 export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) => {
@@ -27,11 +51,23 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   
   const formsToPrint = [];
 
+  // Helper to calc total of a slice
+  const calcTotal = (slice: TAEntry[]) => slice.reduce((acc, curr) => acc + (parseFloat(curr.rate) || 0), 0);
+
   for (let i = 0; i < totalForms; i++) {
     const startIdx = i * ROWS_PER_FORM;
-    const formEntries = rawEntries.slice(startIdx, startIdx + ROWS_PER_FORM);
+    const formEntriesRaw = rawEntries.slice(startIdx, startIdx + ROWS_PER_FORM);
     
-    // Fill to strictly 26 rows per form
+    // Calculate actual totals before filling empty rows
+    const page1Raw = formEntriesRaw.slice(0, ROWS_PER_PAGE);
+    const page2Raw = formEntriesRaw.slice(ROWS_PER_PAGE, ROWS_PER_FORM);
+    
+    const page1Total = calcTotal(page1Raw);
+    const page2Total = calcTotal(page2Raw); // Just page 2 specific
+    const grandTotal = page1Total + page2Total;
+
+    // Fill to strictly 26 rows per form for rendering
+    const formEntries = [...formEntriesRaw];
     while (formEntries.length < ROWS_PER_FORM) {
       formEntries.push({ 
         id: `empty-${i}-${Math.random()}`, 
@@ -46,7 +82,10 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
       formIndex: i + 1,
       totalForms: totalForms,
       page1: formEntries.slice(0, ROWS_PER_PAGE),
-      page2: formEntries.slice(ROWS_PER_PAGE, ROWS_PER_FORM)
+      page2: formEntries.slice(ROWS_PER_PAGE, ROWS_PER_FORM),
+      page1Total,
+      grandTotal,
+      grandTotalWords: numberToWords(Math.round(grandTotal))
     });
   }
 
@@ -57,7 +96,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
       <div className="flex justify-between items-start border-b border-black pb-0.5 mb-1">
         <div className="text-[10px] font-bold uppercase tracking-wide mt-1">मध्य रेल / CENTRAL RAILWAY</div>
         
-        {/* Updated Right Side Codes as per request */}
+        {/* Updated Right Side Codes */}
         <div className="text-[9px] font-bold text-right leading-tight">
             <div>जी. ए. ३१ एस आर सी/जी 1677</div>
             <div>जी 69 एफ/जी 69 एफ/ए</div>
@@ -65,11 +104,14 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         </div>
       </div>
       
-      {/* Title */}
-      <div className="text-center mb-2 mt-2">
-        <h1 className="font-black text-2xl uppercase tracking-widest border-b-2 border-black inline-block pb-0.5 scale-y-110">
-          यात्रा भत्ता जर्नल / TRAVELLING ALLOWANCE JOURNAL
+      {/* Title - Corrected Layout */}
+      <div className="text-center mb-2 mt-3 flex flex-col items-center">
+        <h1 className="font-black text-3xl uppercase tracking-widest scale-y-110 mb-1">
+          यात्रा भत्ता जर्नल
         </h1>
+        <h2 className="font-bold text-xl uppercase tracking-widest border-b-2 border-black inline-block pb-0.5">
+          TRAVELLING ALLOWANCE JOURNAL
+        </h2>
       </div>
 
       {/* Rule Line */}
@@ -132,9 +174,17 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   );
 
   // --- FOOTER SECTION (Page 2 Only) ---
-  const Page2Footer = () => (
+  const Page2Footer = ({ grandTotalWords }: { grandTotalWords: string }) => (
     <div className="mt-2 font-sans text-black select-none">
       
+      {/* BOXED TOTAL IN WORDS */}
+      <div className="border border-black p-2 mb-4 text-[10px] font-bold bg-gray-50 flex items-center shadow-sm">
+        <span className="mr-2 uppercase">Grand Total (in words) :</span>
+        <span className="flex-1 border-b border-dotted border-black" style={INK_STYLE}>
+            {grandTotalWords} ONLY
+        </span>
+      </div>
+
       {/* CERTIFICATE TEXT */}
       <div className="text-[9px] leading-tight text-justify font-medium mb-4">
         <div className="mb-2">
@@ -194,8 +244,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   // --- TABLE HEADER (Compact Heights) ---
   const TableHeader = ({ showLabels = true }: { showLabels?: boolean }) => (
     <div className="grid grid-cols-[8%_8%_6%_6%_16%_5%_5%_18%_6%_12%_10%] text-[8px] leading-none font-bold text-center border-b border-black bg-white select-none">
-        
-        {/* Row 1 Headers (Conditionally Hidden for Page 2) */}
+        {/* Row 1 Headers */}
         <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
            {showLabels && <><span>माह और तारीख</span><span className="mt-0.5">Month & Date</span></>}
         </div>
@@ -210,19 +259,26 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         </div>
         
         {/* Station Combined */}
-        <div className="border-r border-black h-[12mm]">
-            <div className="border-b border-black h-[50%] flex items-center justify-center">
-               {showLabels && "स्टेशन / Station"}
-            </div>
-            <div className="grid grid-cols-2 h-[50%]">
-                <div className="border-r border-black flex items-center justify-center h-full">
-                  {showLabels && "से/From"}
+        {showLabels ? (
+            <div className="border-r border-black h-[12mm]">
+                <div className="border-b border-black h-[50%] flex items-center justify-center">
+                   स्टेशन / Station
                 </div>
-                <div className="flex items-center justify-center h-full">
-                  {showLabels && "तक/To"}
+                <div className="grid grid-cols-2 h-[50%]">
+                    <div className="border-r border-black flex items-center justify-center h-full">
+                      से/From
+                    </div>
+                    <div className="flex items-center justify-center h-full">
+                      तक/To
+                    </div>
                 </div>
             </div>
-        </div>
+        ) : (
+            <div className="border-r border-black h-[12mm] grid grid-cols-2">
+                <div className="border-r border-black h-full"></div>
+                <div className="h-full"></div>
+            </div>
+        )}
 
         <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
            {showLabels && <><span>कि. मी.</span><span className="mt-0.5">Kms.</span></>}
@@ -237,7 +293,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
            {showLabels && <><span>दर</span><span className="mt-0.5">Rate</span></>}
         </div>
         
-        {/* Updated Column 11 & 12 Headers */}
+        {/* Column 11 & 12 */}
         <div className="border-r border-black p-0.5 flex flex-col justify-center h-[12mm]">
             {showLabels && <span className="leading-tight">दूरी जिसके लिये प्राईवेट / सार्वजनिक<br/>सवारी का उपयोग किया गया<br/><span className="font-normal text-[7px] block mt-0.5">Distance for which private/public conveyance is used</span></span>}
         </div>
@@ -245,7 +301,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
             {showLabels && <span className="leading-tight">दूरी अनुसूची के मद 20 का संदर्भ<br/><span className="font-normal text-[7px] block mt-0.5">Reference to Item 20 In Schedule of distance</span></span>}
         </div>
 
-        {/* Column Numbers Row (Always Visible) */}
+        {/* Column Numbers */}
         <div className="col-span-11 grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] border-t border-black h-[3mm] items-center text-[7px]">
              <div className="border-r border-black">1</div>
              <div className="border-r border-black">2</div>
@@ -271,7 +327,6 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
           return (
             <div key={idx} className="grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] text-center border-b border-black last:border-b-0 relative h-[8mm]">
               
-              {/* Data Cells (With strict Blue Ink style) */}
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.date}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.trainNo}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.departTime}</div>
@@ -291,6 +346,23 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     );
   };
 
+  // --- TOTAL ROW COMPONENT ---
+  const TotalRow = ({ label, amount }: { label: string, amount: number }) => (
+    <div className="grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] border-t border-black h-[8mm] text-[9px] font-bold leading-none bg-gray-50/50">
+        {/* Label spanning columns 1-9 (72%) */}
+        <div className="col-span-9 border-r border-black flex items-center justify-end px-2 uppercase tracking-wider">
+            {label}
+        </div>
+        {/* Rate Column (6%) */}
+        <div className="border-r border-black flex items-center justify-center pt-0.5" style={INK_STYLE}>
+            {amount > 0 ? amount : ''}
+        </div>
+        {/* Empty cols */}
+        <div className="border-r border-black"></div>
+        <div></div>
+    </div>
+  );
+
   // The ID "print-content" is crucial for html2pdf
   return (
     <div id="print-content" className="w-full mx-auto bg-white">
@@ -302,9 +374,10 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
                 <div className="border-2 border-black mt-0.5">
                     <TableHeader showLabels={true} />
                     <TableRows entries={form.page1} />
+                    <TotalRow label="Total (Carried Over)" amount={form.page1Total} />
                 </div>
                 
-                {/* Page 1 Footer as Requested */}
+                {/* Page 1 Footer */}
                 <div className="flex justify-between items-end mt-1 px-1">
                    <div className="text-[9px] font-bold">C.R.P. 00-06-0006-13,00,000 Forms-04-06</div>
                    <div className="text-[9px] font-bold">कृ. पु.प./P.T.O.</div>
@@ -317,13 +390,14 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
 
             {/* ================= FORM {index+1} PAGE 2 ================= */}
             <div className={`relative px-[5mm] pt-[15mm] box-border ${index < formsToPrint.length - 1 ? 'page-break' : ''}`} style={{ width: '297mm', height: '209mm' }}>
-                {/* No PageHeader here, just top margin padding (pt-[15mm]) */}
                 <div className="border-2 border-black">
-                    {/* Header on Page 2 has NO TEXT LABELS, only numbers */}
                     <TableHeader showLabels={false} />
                     <TableRows entries={form.page2} />
+                    <TotalRow label="Grand Total" amount={form.grandTotal} />
                 </div>
-                <Page2Footer />
+                
+                <Page2Footer grandTotalWords={form.grandTotalWords} />
+                
                 <div className="absolute bottom-1 right-4 text-[8px]">
                     Form {form.formIndex}/{form.totalForms} - Page 2 of 2
                 </div>
