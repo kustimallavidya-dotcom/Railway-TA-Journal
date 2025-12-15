@@ -104,9 +104,9 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         </div>
       </div>
       
-      {/* Title - Corrected Layout */}
+      {/* Title - Corrected Layout - Removed tracking-widest from Hindi title */}
       <div className="text-center mb-2 mt-3 flex flex-col items-center">
-        <h1 className="font-black text-3xl uppercase tracking-widest scale-y-110 mb-1 font-devanagari">
+        <h1 className="font-black text-3xl scale-y-110 mb-1 font-devanagari">
           यात्रा भत्ता जर्नल
         </h1>
         <h2 className="font-bold text-xl uppercase tracking-widest border-b-2 border-black inline-block pb-0.5">
