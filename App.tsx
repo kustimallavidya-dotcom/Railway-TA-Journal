@@ -25,8 +25,11 @@ const STRINGS = {
     unsavedTitle: "Unsaved Changes",
     unsavedMsg: "You have unsaved changes. Do you really want to exit?",
     exitAnyway: "Exit Anyway",
-    deleteRow: "Are you sure you want to delete this ENTRY?",
-    deleteJournalConfirm: "Are you sure you want to delete this entire MONTH JOURNAL? This cannot be undone.",
+    deleteRowTitle: "Delete Entry?",
+    deleteRowMsg: "Are you sure you want to remove this journey entry?",
+    deleteJournalTitle: "Delete Month Journal?",
+    deleteJournalMsg: "This will permanently delete all entries for this month. This action cannot be undone.",
+    deleteConfirm: "Yes, Delete",
     installTitle: "Install App",
     installMsg: "Install Railway TA App for easier monthly claims and offline access.",
     installNow: "Install Now",
@@ -49,6 +52,8 @@ const STRINGS = {
     kms: "KMS",
     percent: "DAY/NIGHT %",
     purpose: "PURPOSE",
+    col11: "PVT DIST (COL 11)",
+    col12: "REF ITEM 20 (COL 12)",
     tapToAdd: "Tap + to add a daily journey",
     limitReached: "Limit Reached! Maximum 26 rows per journal.",
     developer: "Developed by",
@@ -529,6 +534,9 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [activeTab, setActiveTab] = useState<'history' | 'profile'>('history');
+  
+  // Custom Confirmation Modal State
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   const handleSendFeedback = () => {
     const subject = encodeURIComponent("Feedback: Railway TA App");
@@ -560,6 +568,23 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
             </div>
          </div>
        </div>
+       
+       {/* WARNING MODAL FOR JOURNAL DELETION */}
+       {itemToDelete && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full animate-scale-in border-l-4 border-red-500">
+               <div className="flex items-center gap-3 mb-4 text-red-600">
+                 <AlertTriangle className="w-8 h-8" />
+                 <h3 className="text-xl font-bold">{t.deleteJournalTitle}</h3>
+               </div>
+               <p className="text-gray-600 mb-6 font-medium leading-relaxed">{t.deleteJournalMsg}</p>
+               <div className="flex justify-end gap-3">
+                  <button onClick={() => setItemToDelete(null)} className="px-4 py-2 text-gray-500 font-bold hover:bg-gray-100 rounded-lg">{t.cancel}</button>
+                  <button onClick={() => { onDeleteJournal(itemToDelete); setItemToDelete(null); }} className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700">{t.deleteConfirm}</button>
+               </div>
+            </div>
+         </div>
+       )}
 
        {showProfileSwitcher && (
          <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setShowProfileSwitcher(false)}>
@@ -611,9 +636,7 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
                           <button 
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if(window.confirm(t.deleteJournalConfirm)) {
-                                    onDeleteJournal(j.id);
-                                }
+                                setItemToDelete(j.id);
                             }}
                             className="p-2 text-gray-300 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
                             title="Delete Journal"
@@ -751,6 +774,9 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   const [editingEntry, setEditingEntry] = useState<TAEntry | null>(null);
   const [newEntry, setNewEntry] = useState<TAEntry>({ ...INITIAL_ENTRY, id: '' });
   
+  // Warning Modal State
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  
   // Sync with parent whenever local entries are modified
   const updateEntries = (newEntries: TAEntry[]) => {
       setEntries(newEntries);
@@ -772,9 +798,7 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   };
 
   const handleDeleteEntry = (id: string) => {
-     if (window.confirm(t.deleteRow)) {
-        updateEntries(entries.filter(e => e.id !== id));
-     }
+     updateEntries(entries.filter(e => e.id !== id));
   };
   
   const handleEdit = (entry: TAEntry) => {
@@ -805,6 +829,23 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
             </button>
          </div>
       </div>
+      
+       {/* WARNING MODAL FOR ENTRY DELETION */}
+       {entryToDelete && (
+         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl p-6 shadow-2xl max-w-sm w-full animate-scale-in border-l-4 border-red-500">
+               <div className="flex items-center gap-3 mb-4 text-red-600">
+                 <AlertTriangle className="w-8 h-8" />
+                 <h3 className="text-xl font-bold">{t.deleteRowTitle}</h3>
+               </div>
+               <p className="text-gray-600 mb-6 font-medium leading-relaxed">{t.deleteRowMsg}</p>
+               <div className="flex justify-end gap-3">
+                  <button onClick={() => setEntryToDelete(null)} className="px-4 py-2 text-gray-500 font-bold hover:bg-gray-100 rounded-lg">{t.cancel}</button>
+                  <button onClick={() => { handleDeleteEntry(entryToDelete); setEntryToDelete(null); }} className="px-4 py-2 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700">{t.deleteConfirm}</button>
+               </div>
+            </div>
+         </div>
+       )}
 
       {/* Entries List */}
       <div className="max-w-2xl mx-auto p-4 space-y-3">
@@ -819,7 +860,8 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
               <div className="absolute top-3 right-3 flex gap-3">
                  <button onClick={() => handleEdit(entry)} className="text-gray-400 hover:text-blue-600"><Settings className="w-4 h-4" /></button>
                  <button onClick={() => handleDuplicate(entry)} className="text-gray-400 hover:text-green-600"><Copy className="w-4 h-4" /></button>
-                 <button onClick={() => handleDeleteEntry(entry.id)} className="text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                 {/* DELETE BUTTON TRIGGERS MODAL */}
+                 <button onClick={() => setEntryToDelete(entry.id)} className="text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
               </div>
               <div className="grid grid-cols-[auto_1fr] gap-4 text-sm mb-2 items-start">
                  <div className="bg-blue-50 text-blue-800 p-2 rounded-lg text-center min-w-[60px]">
@@ -921,6 +963,18 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                  <div>
                     <label className="text-xs font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.purpose}</label>
                     <input type="text" value={newEntry.purpose} onChange={e => setNewEntry({...newEntry, purpose: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                 </div>
+
+                 {/* Row 5 - Extra Columns 11 & 12 */}
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.col11}</label>
+                      <input type="text" value={newEntry.distancePvt} onChange={e => setNewEntry({...newEntry, distancePvt: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.col12}</label>
+                      <input type="text" value={newEntry.refItem20} onChange={e => setNewEntry({...newEntry, refItem20: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                    </div>
                  </div>
               </div>
               
