@@ -54,6 +54,7 @@ const STRINGS = {
     purpose: "PURPOSE",
     col11: "PVT DIST (COL 11)",
     col12: "REF ITEM 20 (COL 12)",
+    leaveBlank: "Leave blank if N/A",
     tapToAdd: "Tap + to add a daily journey",
     limitReached: "Limit Reached! Maximum 26 rows per journal.",
     developer: "Developed by",
@@ -969,11 +970,11 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.col11}</label>
-                      <input type="text" value={newEntry.distancePvt} onChange={e => setNewEntry({...newEntry, distancePvt: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                      <input type="text" value={newEntry.distancePvt} onChange={e => setNewEntry({...newEntry, distancePvt: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} placeholder={t.leaveBlank} />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wide">{t.col12}</label>
-                      <input type="text" value={newEntry.refItem20} onChange={e => setNewEntry({...newEntry, refItem20: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} />
+                      <input type="text" value={newEntry.refItem20} onChange={e => setNewEntry({...newEntry, refItem20: e.target.value})} className={`w-full border-gray-300 border p-3 rounded-xl ${INPUT_STYLE}`} placeholder={t.leaveBlank} />
                     </div>
                  </div>
               </div>
