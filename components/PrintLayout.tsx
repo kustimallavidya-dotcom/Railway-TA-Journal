@@ -10,12 +10,14 @@ interface PrintLayoutProps {
 const ROWS_PER_PAGE = 13;
 const ROWS_PER_FORM = 26;
 
-// INK STYLES (User Input) - Matches the uploaded blue handwriting style
+// INK STYLES (User Input) - Bolder and Larger as requested
 const INK_STYLE = {
   fontFamily: '"Courier New", Courier, monospace',
-  fontWeight: 'bold',
+  fontWeight: '800', // Extra Bold
   color: '#1d4ed8', // Blue-700
   textTransform: 'uppercase' as const,
+  fontSize: '11px', // Larger font
+  letterSpacing: '0.5px'
 };
 
 export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) => {
@@ -124,7 +126,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     </div>
   );
 
-  // --- FOOTER SECTION (Compact) ---
+  // --- FOOTER SECTION (Expanded to match Scan) ---
   const PageFooter = () => (
     <div className="mt-1 text-[9px] leading-snug font-sans text-black select-none">
       <div className="flex gap-1 items-end mb-0.5">
@@ -137,23 +139,32 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
          <span className="border-b border-black w-24 inline-block h-2"></span>
          <span>was absent on duty from his headquarter's station during the period charged for in this bill on railway business.</span>
       </div>
+
+      <div className="mb-2 text-justify leading-tight">
+        I certify that no TA/DA or any other remuneration has been drawn from any other source in respect of the journeys performed duty pass and also for the halts for which TA/DA has been claimed in this bill.
+      </div>
       
       {/* Signature Grid */}
-      <div className="grid grid-cols-3 gap-2 mt-2 px-2">
-        <div className="text-center flex flex-col items-center justify-end h-12">
+      <div className="grid grid-cols-3 gap-2 mt-4 px-2">
+        <div className="text-center flex flex-col items-center justify-end h-16">
            <div className="font-bold mb-0.5 w-full"></div>
            <div className="border-t border-black w-3/4 pt-0.5 font-bold text-[8px]">परिवहन निरीक्षक<br/>Transportation Inspector</div>
         </div>
-        <div className="text-center flex flex-col items-center justify-end h-12">
+        <div className="text-center flex flex-col items-center justify-end h-16">
            <div className="font-bold mb-0.5 w-full"></div>
            <div className="border-t border-black w-3/4 pt-0.5 font-bold text-[8px]">नियंत्रक अधिकारी<br/>Controlling Officer</div>
         </div>
-        <div className="text-center flex flex-col items-center justify-end h-12">
+        <div className="text-center flex flex-col items-center justify-end h-16">
            <div className="font-bold mb-0.5 w-full font-serif italic text-base"></div>
            <div className="border-t border-black w-3/4 pt-0.5 font-bold text-[8px]">हस्ताक्षर<br/>Signature</div>
+           <div className="text-[7px] text-right w-full mt-1 font-bold uppercase">Forms-04-06</div>
         </div>
       </div>
-      <div className="text-right text-[8px] mt-1 font-bold uppercase">Forms-04-06</div>
+
+      {/* Final Note */}
+      <div className="mt-1 pt-1 border-t border-black text-[8px] font-medium italic">
+        <span className="font-bold">Note :-</span> On transfer from one Railway to another, certificate whether or not a free pass or Locomotion at Government expenses was allowed or not should be recorded on T.A. Bills.
+      </div>
     </div>
   );
 
@@ -213,8 +224,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.trainNo}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.departTime}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.arriveTime}</div>
-              <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap text-[8px] h-full pt-0.5" style={INK_STYLE}>{entry.stationFrom}</div>
-              <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap text-[8px] h-full pt-0.5" style={INK_STYLE}>{entry.stationTo}</div>
+              <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.stationFrom}</div>
+              <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.stationTo}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.kms}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-0.5" style={INK_STYLE}>{entry.dayNightPercent}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap text-[7px] leading-tight px-0.5 h-full pt-0.5" style={INK_STYLE}>{entry.purpose}</div>
@@ -228,8 +239,9 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     );
   };
 
+  // The ID "print-content" is crucial for html2pdf
   return (
-    <div className="w-full mx-auto bg-white" style={{ transform: 'scale(0.98)', transformOrigin: 'top center' }}>
+    <div id="print-content" className="w-full mx-auto bg-white">
       {formsToPrint.map((form, index) => (
         <React.Fragment key={index}>
             {/* ================= FORM {index+1} PAGE 1 ================= */}

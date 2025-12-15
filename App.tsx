@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, Home, Calendar, History } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, Home, Calendar, History, Download } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
@@ -31,6 +31,8 @@ const STRINGS = {
     installNow: "Install Now",
     later: "Later",
     printPdf: "Submit & Print",
+    downloadPdf: "Download PDF",
+    downloading: "Generating PDF...",
     backToEdit: "Back to Edit",
     setupProfile: "Setup Profile",
     saveProfile: "Save Profile",
@@ -75,6 +77,8 @@ const STRINGS = {
     installNow: "इंस्टॉल करा",
     later: "नंतर",
     printPdf: "सबमिट आणि प्रिंट",
+    downloadPdf: "PDF डाउनलोड करा",
+    downloading: "PDF तयार होत आहे...",
     backToEdit: "मागे जा",
     setupProfile: "प्रोफाइल सेट करा",
     saveProfile: "प्रोफाइल सेव्ह करा",
@@ -108,6 +112,7 @@ export default function App() {
   const [journals, setJournals] = useState<MonthJournal[]>([]);
   const [activeJournalId, setActiveJournalId] = useState<string | null>(null);
   const [lang, setLang] = useState<'en' | 'mr'>('en');
+  const [isDownloading, setIsDownloading] = useState(false);
   
   // Install Prompt State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -197,6 +202,35 @@ export default function App() {
     }
   };
 
+  const handleDownloadPDF = () => {
+    if (!activeJournal) return;
+    setIsDownloading(true);
+
+    const element = document.getElementById('print-content');
+    if (!element) return;
+
+    // Direct PDF Download Configuration
+    const opt = {
+      margin: 0,
+      filename: `TA_Journal_${activeJournal.month}_${activeJournal.year}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    // Use html2pdf lib added in index.html
+    // @ts-ignore
+    if (window.html2pdf) {
+      // @ts-ignore
+      window.html2pdf().set(opt).from(element).save().then(() => {
+        setIsDownloading(false);
+      });
+    } else {
+      alert("PDF Generator loading... please try again in a second.");
+      setIsDownloading(false);
+    }
+  };
+
   // --- RENDER VIEWS ---
 
   if (view === 'splash') {
@@ -273,20 +307,33 @@ export default function App() {
         />
       )}
 
-      {/* VIEW: PRINT PREVIEW */}
+      {/* VIEW: PRINT PREVIEW (With Direct PDF Download) */}
       {view === 'print' && activeJournal && activeProfile && (
-        <div className="min-h-screen bg-gray-200 flex flex-col items-center">
-          <div className="no-print fixed top-0 w-full bg-white shadow-md z-10 p-4 flex justify-between items-center">
+        <div className="min-h-screen bg-gray-600 flex flex-col items-center">
+          <div className="no-print fixed top-0 w-full bg-white shadow-md z-50 p-4 flex justify-between items-center">
              <button onClick={() => setView('editor')} className="flex items-center text-gray-700 font-medium hover:text-blue-700">
                <ArrowLeft className="w-5 h-5 mr-1" /> {t.backToEdit}
              </button>
-             <button onClick={() => window.print()} className="flex items-center bg-blue-700 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-800 font-bold">
-               <Printer className="w-5 h-5 mr-2" /> {t.printPdf}
+             
+             {/* DIRECT DOWNLOAD BUTTON */}
+             <button 
+               onClick={handleDownloadPDF} 
+               disabled={isDownloading}
+               className={`flex items-center text-white px-6 py-2 rounded-lg shadow-lg font-bold transition-all ${isDownloading ? 'bg-gray-400 cursor-wait' : 'bg-green-600 hover:bg-green-700'}`}
+             >
+               {isDownloading ? (
+                 <span>{t.downloading}</span>
+               ) : (
+                 <>
+                   <Download className="w-5 h-5 mr-2" /> {t.downloadPdf}
+                 </>
+               )}
              </button>
           </div>
           
-          <div className="mt-20 mb-10 overflow-auto w-full flex justify-center print:m-0 print:p-0">
-             <div className="bg-white shadow-2xl origin-top scale-75 md:scale-100 print:scale-100 print:shadow-none print:w-[297mm]"> 
+          <div className="mt-20 mb-10 w-full flex justify-center overflow-auto p-4">
+             {/* This container will be converted to PDF */}
+             <div className="bg-white shadow-2xl scale-[0.6] md:scale-90 origin-top"> 
                 <PrintLayout journal={activeJournal} profile={activeProfile} />
              </div>
           </div>
