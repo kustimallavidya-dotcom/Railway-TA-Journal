@@ -182,11 +182,12 @@ export default function App() {
     return (
       <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/train-pattern.png')]"></div>
-        <div className="animate-pulse mb-8 relative z-10 p-4 bg-white rounded-full shadow-2xl">
-           <img src="https://cdn-icons-png.flaticon.com/512/2855/2855383.png" alt="Railway Logo" className="w-32 h-32" />
+        {/* Updated Splash Logo - Beautiful & Striking */}
+        <div className="animate-pulse mb-8 relative z-10 p-6 bg-white rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+           <img src="https://cdn-icons-png.flaticon.com/512/2362/2362483.png" alt="Railway Logo" className="w-32 h-32 drop-shadow-xl" />
         </div>
         <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10 text-white drop-shadow-md">Railway TA Journal</h1>
-        <p className="text-blue-200 text-lg z-10">Simplify Your Claims</p>
+        <p className="text-blue-200 text-lg z-10 font-medium">Simplify Your Journey Claims</p>
         <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide text-center">
           {t.developer} <br/> {DEVELOPER_NAME}
         </div>
