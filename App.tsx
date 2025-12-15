@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, LogOut } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Globe, LogOut, Home, Calendar, History } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
-import { ROWS_PER_PAGE, MONTHS, INITIAL_ENTRY } from './constants';
+import { ROWS_PER_PAGE, MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
-import { AdComponent } from './components/AdComponent';
 
 // --- TRANSLATIONS ---
 const STRINGS = {
@@ -12,16 +11,19 @@ const STRINGS = {
     switchProfile: "Switch Profile",
     addNewProfile: "Add New Profile",
     newJournal: "New TA Journal",
+    newMonth: "New Month",
+    history: "History",
+    profile: "Profile",
     totalJournals: "Total Journals",
-    recent: "Recent Journals",
+    recent: "My Journals History",
     noJournals: "No TA journals yet. Create one!",
     entries: "Entries",
     lastMod: "Last modified",
     create: "Create",
     cancel: "Cancel",
-    selectPeriod: "Select Period",
+    selectPeriod: "Select Month & Year",
     unsavedTitle: "Unsaved Changes",
-    unsavedMsg: "Your data is not saved. Do you want to exit?",
+    unsavedMsg: "You have unsaved changes. Do you really want to exit?",
     exitAnyway: "Exit Anyway",
     deleteRow: "Delete this row?",
     installTitle: "Install App",
@@ -45,24 +47,28 @@ const STRINGS = {
     percent: "DAY/NIGHT %",
     purpose: "PURPOSE",
     tapToAdd: "Tap + to add a daily journey",
-    limitReached: "Limit Reached! Maximum 26 rows per journal."
+    limitReached: "Limit Reached! Maximum 26 rows per journal.",
+    developer: "Developed by"
   },
   mr: {
     welcome: "स्वागत आहे",
     switchProfile: "प्रोफाइल बदला",
     addNewProfile: "नवीन प्रोफाइल जोडा",
     newJournal: "नवीन टी.ए. जर्नल",
+    newMonth: "नवीन महिना",
+    history: "इतिहास",
+    profile: "प्रोफाइल",
     totalJournals: "एकूण जर्नल्स",
-    recent: "अलीकडील जर्नल्स",
+    recent: "माझे जुने जर्नल्स",
     noJournals: "अद्याप कोणतीही जर्नल्स नाहीत. एक तयार करा!",
     entries: "नोंदी",
     lastMod: "शेवटचा बदल",
     create: "तयार करा",
     cancel: "रद्द करा",
-    selectPeriod: "कालावधी निवडा",
+    selectPeriod: "महिना आणि वर्ष निवडा",
     unsavedTitle: "सेव्ह केलेले नाही",
-    unsavedMsg: "तुमची माहिती सेव्ह केलेली नाही. बाहेर जायचे आहे का?",
-    exitAnyway: "तरीही बाहेर पडा",
+    unsavedMsg: "तुमचे बदल सेव्ह केलेले नाहीत. तुम्हाला नक्की बाहेर पडायचे आहे का?",
+    exitAnyway: "बाहेर पडा",
     deleteRow: "ही ओळ हटवायची?",
     installTitle: "ॲप इंस्टॉल करा",
     installMsg: "सोप्या मासिक दाव्यांसाठी रेल्वे टी.ए. ॲप इंस्टॉल करा.",
@@ -85,7 +91,8 @@ const STRINGS = {
     percent: "दिवस/रात्र %",
     purpose: "उद्देश",
     tapToAdd: "प्रवास जोडण्यासाठी + दाबा",
-    limitReached: "मर्यादा संपली! एका जर्नलमध्ये फक्त 26 ओळी."
+    limitReached: "मर्यादा संपली! एका जर्नलमध्ये फक्त 26 ओळी.",
+    developer: "Developed by"
   }
 };
 
@@ -201,8 +208,8 @@ export default function App() {
         </div>
         <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10">Railway TA Journal</h1>
         <p className="text-blue-200 text-lg z-10">Simplify Your Claims</p>
-        <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide">
-          Developed By Milind Manugade
+        <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide text-center">
+          {t.developer} <br/> {DEVELOPER_NAME}
         </div>
       </div>
     );
@@ -212,7 +219,7 @@ export default function App() {
   const activeJournal = journals.find(j => j.id === activeJournalId);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pb-16">
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       {/* Install Modal */}
       {showInstallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm px-4">
@@ -285,11 +292,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* Sticky Banner Ad */}
-      <div className="fixed bottom-0 w-full z-40 bg-gray-100 border-t border-gray-300 no-print">
-         <AdComponent type="banner" />
-      </div>
     </div>
   );
 }
@@ -374,66 +376,161 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
+  const [activeTab, setActiveTab] = useState<'history' | 'profile'>('history');
 
   return (
-    <div className="p-4 max-w-2xl mx-auto pb-20">
-       <div className="flex justify-between items-center mb-6">
-         <div>
-            <h1 className="text-xl font-bold text-gray-800">{t.welcome},</h1>
-            <div 
-              onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
-              className="text-blue-700 font-bold text-lg flex items-center cursor-pointer"
-            >
-               {profile.name} <Settings className="w-4 h-4 ml-2" />
+    <div className="pb-24">
+       {/* HEADER */}
+       <div className="p-4 bg-white shadow-sm sticky top-0 z-20">
+         <div className="flex justify-between items-center max-w-2xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div 
+                onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
+                className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold border border-blue-200 cursor-pointer"
+              >
+                {profile.name.charAt(0)}
+              </div>
+              <div>
+                  <h1 className="text-xs font-bold text-gray-400 uppercase tracking-wide">{t.welcome}</h1>
+                  <div 
+                    onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
+                    className="text-blue-900 font-bold text-sm flex items-center cursor-pointer leading-tight"
+                  >
+                    {profile.name} <Settings className="w-3 h-3 ml-1" />
+                  </div>
+              </div>
             </div>
-         </div>
-         <div className="flex flex-col items-end gap-2">
-            <button onClick={toggleLang} className="flex items-center text-xs bg-white border border-gray-300 px-2 py-1 rounded-full shadow-sm">
-               <Globe className="w-3 h-3 mr-1" /> {lang === 'en' ? 'मराठी' : 'English'}
+            <button onClick={toggleLang} className="flex items-center text-xs bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full font-medium">
+               <Globe className="w-3 h-3 mr-1 text-blue-600" /> {lang === 'en' ? 'मराठी' : 'English'}
             </button>
-            <div className="bg-blue-100 px-3 py-1 rounded-full text-blue-800 text-xs font-bold border border-blue-200 shadow-sm">{profile.designation}</div>
          </div>
        </div>
 
        {showProfileSwitcher && (
-         <div className="mb-6 bg-white p-4 rounded-xl shadow-lg border border-gray-100 animate-fade-in-up">
-           <h3 className="text-sm font-bold mb-3 text-gray-500 uppercase tracking-wider">{t.switchProfile}</h3>
-           <div className="space-y-2">
-             {profiles.map((p: any) => (
-               <button key={p.id} onClick={() => { onSwitchProfile(p.id); setShowProfileSwitcher(false); }} 
-                 className={`w-full text-left p-3 rounded-lg flex justify-between items-center transition-colors ${p.id === profile.id ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'hover:bg-gray-50'}`}>
-                 <span className="font-semibold">{p.name}</span>
-                 <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-600">{p.station}</span>
-               </button>
-             ))}
-             <button onClick={onAddProfile} className="w-full flex items-center justify-center p-3 text-blue-600 font-bold border-t mt-2 hover:bg-blue-50 rounded-b-lg">
-               <UserPlus className="w-5 h-5 mr-2" /> {t.addNewProfile}
-             </button>
-           </div>
+         <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setShowProfileSwitcher(false)}>
+            <div className="absolute top-16 left-4 bg-white p-4 rounded-xl shadow-xl border border-gray-100 w-64 animate-fade-in-up" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xs font-bold mb-3 text-gray-400 uppercase tracking-wider">{t.switchProfile}</h3>
+              <div className="space-y-2">
+                {profiles.map((p: any) => (
+                  <button key={p.id} onClick={() => { onSwitchProfile(p.id); setShowProfileSwitcher(false); }} 
+                    className={`w-full text-left p-3 rounded-lg flex justify-between items-center transition-colors ${p.id === profile.id ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'hover:bg-gray-50'}`}>
+                    <span className="font-semibold text-sm truncate">{p.name}</span>
+                  </button>
+                ))}
+                <button onClick={onAddProfile} className="w-full flex items-center justify-center p-3 text-blue-600 font-bold border-t mt-2 hover:bg-blue-50 rounded-b-lg text-sm">
+                  <UserPlus className="w-4 h-4 mr-2" /> {t.addNewProfile}
+                </button>
+              </div>
+            </div>
          </div>
        )}
 
-       <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center cursor-pointer hover:shadow-md transition active:scale-95"
-             onClick={() => setShowMonthPicker(true)}
-          >
-             <div className="bg-blue-600 text-white p-4 rounded-full mb-3 shadow-blue-200 shadow-lg">
-               <Plus className="w-8 h-8" />
+       <div className="p-4 max-w-2xl mx-auto">
+         {/* TABS CONTENT */}
+         {activeTab === 'history' && (
+           <>
+             <h3 className="font-bold text-gray-500 text-sm mb-4 px-1 uppercase tracking-wider flex items-center mt-2">
+                <History className="w-4 h-4 mr-2" /> {t.recent}
+             </h3>
+             <div className="space-y-3">
+               {journals.length === 0 ? (
+                 <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+                   <div className="text-gray-300 mb-3"><FileText className="w-12 h-12 mx-auto" /></div>
+                   <p className="text-gray-400 font-medium">{t.noJournals}</p>
+                 </div>
+               ) : (
+                 journals.map((j: MonthJournal) => (
+                   <div key={j.id} onClick={() => onOpenJournal(j.id)} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:shadow-md transition active:bg-gray-50">
+                      <div className="flex items-center">
+                        <div className="bg-blue-50 text-blue-700 w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm mr-4 border border-blue-100">
+                          {j.month.substring(0,3)}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-800">{j.month} {j.year}</h4>
+                          <p className="text-xs text-gray-500 font-medium">{j.entries.length} {t.entries}</p>
+                        </div>
+                      </div>
+                      <ArrowLeft className="w-5 h-5 rotate-180 text-gray-300" />
+                   </div>
+                 ))
+               )}
              </div>
-             <span className="font-bold text-gray-800">{t.newJournal}</span>
-          </div>
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-             <div className="bg-emerald-500 text-white p-4 rounded-full mb-3 shadow-emerald-200 shadow-lg">
-               <FileText className="w-8 h-8" />
+           </>
+         )}
+
+         {activeTab === 'profile' && (
+            <div className="bg-white rounded-xl shadow-sm border p-6">
+               <h3 className="font-bold text-lg mb-4">{t.profile}</h3>
+               <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-gray-400 font-bold uppercase">Name</label>
+                    <div className="font-bold text-gray-800">{profile.name}</div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs text-gray-400 font-bold uppercase">Designation</label>
+                      <div className="font-medium text-gray-700">{profile.designation}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 font-bold uppercase">Station</label>
+                      <div className="font-medium text-gray-700">{profile.station}</div>
+                    </div>
+                  </div>
+                  <button onClick={onAddProfile} className="w-full mt-4 bg-gray-100 text-gray-600 py-2 rounded-lg font-bold text-sm">
+                    {t.switchProfile} / Edit
+                  </button>
+               </div>
+            </div>
+         )}
+       </div>
+
+       {/* DEVELOPER FOOTER */}
+       <div className="text-center text-[10px] text-gray-400 mt-8 mb-4">
+          {t.developer} <span className="font-bold">{DEVELOPER_NAME}</span>
+       </div>
+
+       {/* BOTTOM NAVIGATION BAR */}
+       <div className="fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t border-gray-100 z-40">
+          <div className="flex justify-around items-center max-w-2xl mx-auto h-16 relative">
+             <button 
+               onClick={() => setActiveTab('history')} 
+               className={`flex flex-col items-center justify-center w-full h-full ${activeTab === 'history' ? 'text-blue-700' : 'text-gray-400'}`}
+             >
+               <Home className="w-6 h-6 mb-1" />
+               <span className="text-[10px] font-bold">{t.history}</span>
+             </button>
+
+             {/* MAIN ACTION: NEW MONTH TAB */}
+             <div className="relative -top-6">
+                <button 
+                  onClick={() => setShowMonthPicker(true)}
+                  className="bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center transform active:scale-95 transition-all border-4 border-white"
+                >
+                  <Plus className="w-8 h-8" />
+                </button>
+                <div className="text-center text-[10px] font-bold text-blue-700 mt-1 absolute w-24 -left-5 bg-white/80 rounded px-1">
+                   {t.newMonth}
+                </div>
              </div>
-             <span className="font-bold text-gray-800">{t.totalJournals}: {journals.length}</span>
+
+             <button 
+               onClick={() => setActiveTab('profile')} 
+               className={`flex flex-col items-center justify-center w-full h-full ${activeTab === 'profile' ? 'text-blue-700' : 'text-gray-400'}`}
+             >
+               <User className="w-6 h-6 mb-1" />
+               <span className="text-[10px] font-bold">{t.profile}</span>
+             </button>
           </div>
        </div>
 
+       {/* Month Picker Modal */}
        {showMonthPicker && (
          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
            <div className="bg-white rounded-2xl p-6 w-full max-w-xs animate-fade-in-up shadow-2xl">
-             <h3 className="font-bold text-xl mb-6 text-gray-800">{t.selectPeriod}</h3>
+             <div className="flex items-center justify-center mb-4 text-blue-600">
+               <Calendar className="w-10 h-10" />
+             </div>
+             <h3 className="font-bold text-xl mb-6 text-gray-800 text-center">{t.selectPeriod}</h3>
              <div className="space-y-4 mb-6">
                 <div>
                   <label className="text-xs font-bold text-gray-500 ml-1">MONTH</label>
@@ -455,33 +552,6 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
            </div>
          </div>
        )}
-
-       <h3 className="font-bold text-gray-500 text-sm mb-3 px-1 uppercase tracking-wider">{t.recent}</h3>
-       <div className="space-y-3">
-         {journals.length === 0 ? (
-           <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
-             <div className="text-gray-300 mb-3"><FileText className="w-12 h-12 mx-auto" /></div>
-             <p className="text-gray-400 font-medium">{t.noJournals}</p>
-           </div>
-         ) : (
-           journals.map((j: MonthJournal) => (
-             <div key={j.id} onClick={() => onOpenJournal(j.id)} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:shadow-md transition active:bg-gray-50">
-                <div className="flex items-center">
-                  <div className="bg-blue-50 text-blue-700 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-lg mr-4 border border-blue-100 shadow-sm">
-                    {j.month.substring(0,3)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-800 text-lg">{j.month} {j.year}</h4>
-                    <p className="text-xs text-gray-500 font-medium">{j.entries.length} {t.entries} • {t.lastMod} today</p>
-                  </div>
-                </div>
-                <div className="bg-gray-100 p-2 rounded-full text-gray-500">
-                   <ArrowLeft className="w-5 h-5 rotate-180" />
-                </div>
-             </div>
-           ))
-         )}
-       </div>
     </div>
   );
 };
@@ -490,19 +560,16 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
   const [entries, setEntries] = useState<TAEntry[]>(journal.entries);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-  const [showLimitWarning, setShowLimitWarning] = useState(false);
   
   // Auto Save Logic
   useEffect(() => {
      onUpdate({ ...journal, entries });
   }, [entries]);
 
+  // Handle Back Button Click
   const handleBack = () => {
-    if (editingId) {
-      setShowUnsavedWarning(true);
-    } else {
-      onBack();
-    }
+    // Show warning if there are entries, or just always show it for safety as requested
+    setShowUnsavedWarning(true);
   };
 
   const addEntry = () => {
@@ -696,4 +763,4 @@ const JournalEditor = ({ journal, profile, onUpdate, onBack, onPrint, t }: any) 
       </button>
     </div>
   );
-};
+}
