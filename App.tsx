@@ -89,7 +89,7 @@ const STRINGS = {
   }
 };
 
-// --- STYLE CONSTANTS FOR INPUTS ---
+// --- STYLE CONSTANTS FOR INPUTS (Blue Ink) ---
 const INPUT_BLUE_INK = "text-blue-700 font-bold uppercase handwriting tracking-wider";
 
 // --- MAIN APP COMPONENT ---
@@ -268,7 +268,7 @@ export default function App() {
 
       {/* VIEW: PRINT PREVIEW */}
       {view === 'print' && activeJournal && activeProfile && (
-        <div className="min-h-screen bg-gray-200">
+        <div className="min-h-screen bg-gray-200 flex flex-col items-center">
           <div className="no-print fixed top-0 w-full bg-white shadow-md z-10 p-4 flex justify-between items-center">
              <button onClick={() => setView('editor')} className="flex items-center text-gray-700 font-medium hover:text-blue-700">
                <ArrowLeft className="w-5 h-5 mr-1" /> {t.backToEdit}
@@ -277,9 +277,9 @@ export default function App() {
                <Printer className="w-5 h-5 mr-2" /> {t.printPdf}
              </button>
           </div>
-          <div className="pt-20 pb-10 px-0 overflow-auto flex justify-center">
-             <div className="bg-white shadow-2xl mx-auto p-0 origin-top scale-75 md:scale-100 print:scale-100 print:shadow-none"> 
-                {/* Print Layout Component Injected Here */}
+          
+          <div className="mt-20 mb-10 overflow-auto w-full flex justify-center print:m-0 print:p-0">
+             <div className="bg-white shadow-2xl origin-top scale-75 md:scale-100 print:scale-100 print:shadow-none print:w-[297mm]"> 
                 <PrintLayout journal={activeJournal} profile={activeProfile} />
              </div>
           </div>
@@ -287,7 +287,7 @@ export default function App() {
       )}
 
       {/* Sticky Banner Ad */}
-      <div className="fixed bottom-0 w-full z-40 bg-gray-100 border-t border-gray-300">
+      <div className="fixed bottom-0 w-full z-40 bg-gray-100 border-t border-gray-300 no-print">
          <AdComponent type="banner" />
       </div>
     </div>

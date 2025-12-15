@@ -37,7 +37,7 @@
         
         html, body {
           width: 297mm;
-          min-height: 210mm; /* Allow growth for multiple forms */
+          min-height: 210mm; 
           margin: 0 !important;
           padding: 0 !important;
           background: white;
@@ -45,20 +45,16 @@
           print-color-adjust: exact;
         }
 
-        /* Hide everything that is not print-only */
-        body > *:not(.print-only) {
-          display: none !important;
-        }
-
+        /* Hide all UI elements marked no-print */
         .no-print {
           display: none !important;
         }
-        
-        .print-only {
-          display: block !important;
-          width: 297mm;
-        }
 
+        /* Hide the root's background styling for print */
+        #root {
+           background: white;
+        }
+        
         /* Enforce exact page breaking */
         .page-break {
           page-break-after: always;
@@ -66,10 +62,6 @@
         }
       }
       /* --- STRICT PRINT CSS END --- */
-
-      .print-only {
-        display: none;
-      }
       
       /* Handwriting Font Simulation */
       .handwriting {

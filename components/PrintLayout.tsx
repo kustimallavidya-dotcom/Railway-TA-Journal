@@ -10,7 +10,7 @@ interface PrintLayoutProps {
 const ROWS_PER_PAGE = 13;
 const ROWS_PER_FORM = 26;
 
-// INK STYLES (User Input)
+// INK STYLES (User Input) - Matches the uploaded blue handwriting style
 const INK_STYLE = {
   fontFamily: '"Courier New", Courier, monospace',
   fontWeight: 'bold',
@@ -29,7 +29,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     const startIdx = i * ROWS_PER_FORM;
     const formEntries = rawEntries.slice(startIdx, startIdx + ROWS_PER_FORM);
     
-    // Fill to strictly 26 rows
+    // Fill to strictly 26 rows per form
     while (formEntries.length < ROWS_PER_FORM) {
       formEntries.push({ 
         id: `empty-${i}-${Math.random()}`, 
@@ -38,6 +38,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
         purpose: "", rate: "", distancePvt: "", refItem20: "" 
       });
     }
+    
+    // Split into Page 1 and Page 2
     formsToPrint.push({
       formIndex: i + 1,
       totalForms: totalForms,
@@ -45,11 +47,6 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
       page2: formEntries.slice(ROWS_PER_PAGE, ROWS_PER_FORM)
     });
   }
-
-  // Helper: Is this row essentially empty?
-  const isRowEmpty = (entry: TAEntry) => {
-    return !entry.date && !entry.trainNo && !entry.stationFrom && !entry.stationTo && !entry.kms;
-  };
 
   // --- HEADER SECTION (Repeats on every page) ---
   const PageHeader = ({ pageNum, totalPages }: { pageNum: number, totalPages: number }) => (
@@ -209,27 +206,9 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
     return (
       <div className="font-mono text-[10px]">
         {entries.map((entry, idx) => {
-          const isEmpty = isRowEmpty(entry);
           return (
             <div key={idx} className="grid grid-cols-[8%_8%_6%_6%_8%_8%_5%_5%_18%_6%_12%_10%] text-center border-b border-black last:border-b-0 relative h-[9mm]">
               
-              {/* === BLACK LINE STRIKETHROUGH LOGIC (MANDATORY) === */}
-              {isEmpty ? (
-                 // Full row black line for completely empty rows
-                 <div className="absolute top-1/2 left-0 w-full h-[1.5px] bg-black z-20 pointer-events-none print:block"></div>
-              ) : (
-                 // Partial black lines for empty cells in a filled row
-                 <>
-                   {!entry.date && <div className="absolute top-1/2 left-[0%] w-[8%] h-[1.5px] bg-black z-20"></div>}
-                   {!entry.trainNo && <div className="absolute top-1/2 left-[8%] w-[8%] h-[1.5px] bg-black z-20"></div>}
-                   {/* Skip time/stations lines usually, but enforce end columns */}
-                   {!entry.kms && <div className="absolute top-1/2 left-[44%] w-[5%] h-[1.5px] bg-black z-20"></div>}
-                   {!entry.dayNightPercent && <div className="absolute top-1/2 left-[49%] w-[5%] h-[1.5px] bg-black z-20"></div>}
-                   {!entry.distancePvt && <div className="absolute top-1/2 left-[78%] w-[12%] h-[1.5px] bg-black z-20"></div>}
-                   {!entry.refItem20 && <div className="absolute top-1/2 left-[90%] w-[10%] h-[1.5px] bg-black z-20"></div>}
-                 </>
-              )}
-
               {/* Data Cells (With strict Blue Ink style) */}
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-1" style={INK_STYLE}>{entry.date}</div>
               <div className="border-r border-black flex items-center justify-center overflow-hidden whitespace-nowrap h-full pt-1" style={INK_STYLE}>{entry.trainNo}</div>
@@ -251,7 +230,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ journal, profile }) =>
   };
 
   return (
-    <div className="print-only w-full mx-auto bg-white">
+    <div className="w-full mx-auto bg-white">
       {formsToPrint.map((form, index) => (
         <React.Fragment key={index}>
             {/* ================= FORM {index+1} PAGE 1 ================= */}
