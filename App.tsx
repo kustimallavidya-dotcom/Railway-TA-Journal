@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download, TrainFront, Share2 } from 'lucide-react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download, TrainFront, Share2, Mail } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
@@ -50,61 +50,133 @@ const STRINGS = {
     purpose: "PURPOSE",
     tapToAdd: "Tap + to add a daily journey",
     limitReached: "Limit Reached! Maximum 26 rows per journal.",
-    developer: "Developed by"
+    developer: "Developed by",
+    feedbackTitle: "Feedback & Support",
+    feedbackSub: "Send suggestions to Developer"
   }
 };
 
 // --- STYLE CONSTANTS FOR INPUTS (Black & Extra Bold) ---
 const INPUT_STYLE = "text-black font-extrabold uppercase handwriting tracking-wider placeholder-gray-400";
 
-// --- SVG LOGO COMPONENT (Eliminates need for external image file) ---
-const RailwayLogo = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 200 200" className={className} xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
-      </filter>
-    </defs>
-    {/* Outer Ring */}
-    <circle cx="100" cy="100" r="95" fill="#1e3a8a" stroke="white" strokeWidth="4" filter="url(#shadow)" />
-    {/* Inner White Circle */}
-    <circle cx="100" cy="100" r="70" fill="white" />
-    {/* Stars */}
-    <circle cx="100" cy="15" r="3" fill="white" />
-    <circle cx="100" cy="185" r="3" fill="white" />
-    <circle cx="15" cy="100" r="3" fill="white" />
-    <circle cx="185" cy="100" r="3" fill="white" />
-    
-    {/* Text Curve Path Top */}
-    <path id="curveTop" d="M 30,100 A 70,70 0 0,1 170,100" fill="none" />
-    {/* Text Curve Path Bottom */}
-    <path id="curveBottom" d="M 35,100 A 65,65 0 0,0 165,100" fill="none" />
+// --- ANIMATED TRAIN COMPONENT FOR SPLASH SCREEN (IMPROVED DESIGN) ---
+const AnimatedTrain = () => {
+  return (
+    <div className="w-full h-48 relative overflow-visible flex items-center justify-center mb-6">
+      <style>{`
+        @keyframes moveTrainAcross {
+          0% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+        @keyframes spinWheels {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes bounceTrain {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        @keyframes steamPuff {
+          0% { opacity: 0; transform: scale(0.5) translate(0, 0); }
+          30% { opacity: 0.6; }
+          100% { opacity: 0; transform: scale(3) translate(-40px, -50px); }
+        }
+        .train-wrapper {
+          animation: moveTrainAcross 4s linear infinite;
+          position: absolute;
+          left: 50%; /* Center reference */
+          margin-left: -150px; /* Offset to center the group roughly */
+        }
+        .train-body-anim {
+          animation: bounceTrain 0.4s infinite ease-in-out;
+        }
+        .wheel-anim {
+          animation: spinWheels 0.6s linear infinite;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+        .smoke-particle {
+          position: absolute;
+          background: rgba(255, 255, 255, 0.6);
+          border-radius: 50%;
+        }
+        .s1 { width: 15px; height: 15px; animation: steamPuff 1.5s infinite 0s; top: -10px; left: 220px; }
+        .s2 { width: 20px; height: 20px; animation: steamPuff 1.5s infinite 0.5s; top: -20px; left: 230px; }
+        .s3 { width: 12px; height: 12px; animation: steamPuff 1.5s infinite 1.0s; top: -5px; left: 210px; }
+      `}</style>
+      
+      {/* Track Line */}
+      <div className="absolute bottom-4 w-[200%] h-1 bg-white/20"></div>
 
-    {/* Text */}
-    <text width="200" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" letterSpacing="2">
-      {/* @ts-ignore */}
-      <textPath xlinkHref="#curveTop" startOffset="50%" textAnchor="middle" side="left">
-        INDIAN RAILWAYS
-      </textPath>
-    </text>
-    
-    <text width="200" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif" letterSpacing="2">
-       {/* @ts-ignore */}
-       <textPath xlinkHref="#curveBottom" startOffset="50%" textAnchor="middle" side="right">
-        भारतीय रेल
-      </textPath>
-    </text>
+      {/* Moving Group */}
+      <div className="train-wrapper flex items-end">
+        {/* Smoke */}
+        <div className="smoke-particle s1"></div>
+        <div className="smoke-particle s2"></div>
+        <div className="smoke-particle s3"></div>
 
-    {/* Train Engine Icon Center */}
-    <g transform="translate(65, 65) scale(0.35)">
-       <path fill="#1e3a8a" d="M100 0C44.8 0 0 44.8 0 100s44.8 100 100 100 100-44.8 100-100S155.2 0 100 0zm0 180c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"/>
-       <path fill="#d97706" d="M140 130H60v-60h80v60zm-10-50H70v40h60V80z"/>
-       <circle fill="#1e3a8a" cx="75" cy="145" r="10"/>
-       <circle fill="#1e3a8a" cx="125" cy="145" r="10"/>
-       <rect fill="#1e3a8a" x="95" y="60" width="10" height="20"/>
-    </g>
-  </svg>
-);
+        <div className="train-body-anim">
+          <svg width="340" height="100" viewBox="0 0 340 100" xmlns="http://www.w3.org/2000/svg">
+            {/* --- COACH (Rear) --- */}
+            <g transform="translate(0, 10)">
+               {/* Body */}
+               <rect x="0" y="20" width="130" height="50" rx="4" fill="#1e3a8a" stroke="white" strokeWidth="2" />
+               <rect x="0" y="35" width="130" height="5" fill="#fbbf24" /> {/* Stripe */}
+               
+               {/* Windows */}
+               <rect x="10" y="25" width="20" height="15" fill="#93c5fd" stroke="white" strokeWidth="1"/>
+               <rect x="40" y="25" width="20" height="15" fill="#93c5fd" stroke="white" strokeWidth="1"/>
+               <rect x="70" y="25" width="20" height="15" fill="#93c5fd" stroke="white" strokeWidth="1"/>
+               <rect x="100" y="25" width="20" height="15" fill="#93c5fd" stroke="white" strokeWidth="1"/>
+               
+               {/* Wheels Coach */}
+               <circle cx="30" cy="70" r="10" fill="#374151" stroke="gray" strokeWidth="2" className="wheel-anim" />
+               <circle cx="100" cy="70" r="10" fill="#374151" stroke="gray" strokeWidth="2" className="wheel-anim" />
+               <line x1="30" y1="70" x2="100" y2="70" stroke="#4b5563" strokeWidth="4" />
+            </g>
+
+            {/* Connector */}
+            <rect x="130" y="55" width="10" height="6" fill="#4b5563" />
+
+            {/* --- ENGINE (Front) --- */}
+            <g transform="translate(140, 0)">
+               {/* Main Engine Block */}
+               <path d="M0 30 L160 30 L160 80 L0 80 Z" fill="#1e3a8a" stroke="white" strokeWidth="2" />
+               
+               {/* Front Nose Curve */}
+               <path d="M160 30 Q190 60 160 80 L160 30" fill="#ea580c" stroke="white" strokeWidth="2" />
+               
+               {/* Cabin Top */}
+               <rect x="100" y="10" width="50" height="20" fill="#fbbf24" stroke="white" strokeWidth="2"/>
+               <rect x="105" y="15" width="40" height="12" fill="#93c5fd" /> {/* Windshield */}
+
+               {/* Stripe */}
+               <rect x="0" y="45" width="165" height="8" fill="#fbbf24" />
+               
+               {/* Detail Grills */}
+               <circle cx="40" cy="55" r="15" fill="none" stroke="white" strokeWidth="1" opacity="0.5"/>
+               <circle cx="80" cy="55" r="15" fill="none" stroke="white" strokeWidth="1" opacity="0.5"/>
+
+               {/* Exhaust */}
+               <rect x="60" y="0" width="20" height="10" fill="#374151" />
+
+               {/* Headlight */}
+               <circle cx="170" cy="55" r="5" fill="#fef08a" filter="drop-shadow(0 0 5px #fef08a)" />
+               
+               {/* Wheels Engine */}
+               <circle cx="35" cy="80" r="12" fill="#374151" stroke="gray" strokeWidth="2" className="wheel-anim" />
+               <circle cx="80" cy="80" r="12" fill="#374151" stroke="gray" strokeWidth="2" className="wheel-anim" />
+               <circle cx="125" cy="80" r="12" fill="#374151" stroke="gray" strokeWidth="2" className="wheel-anim" />
+               
+               {/* Cowcatcher (Front Guard) */}
+               <path d="M160 80 L180 90 L160 90 Z" fill="#374151" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- MAIN APP COMPONENT ---
 
@@ -130,7 +202,7 @@ export default function App() {
     if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
     if (savedJournals) setJournals(JSON.parse(savedJournals));
 
-    // Splash screen timer
+    // Splash screen timer - 4 Seconds for full animation cycle
     const timer = setTimeout(() => {
       const hasProfiles = savedProfiles && JSON.parse(savedProfiles).length > 0;
       if (hasProfiles) {
@@ -140,7 +212,7 @@ export default function App() {
       } else {
          setView('profile');
       }
-    }, 2500);
+    }, 4000); 
 
     // PWA Install Handler
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -261,13 +333,14 @@ export default function App() {
       <div className="h-screen w-full bg-blue-900 flex flex-col items-center justify-center text-white p-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/train-pattern.png')]"></div>
         
-        {/* Updated Splash Logo - Using Internal Component instead of File */}
-        <div className="animate-pulse mb-8 relative z-10 p-4 bg-white rounded-full shadow-[0_0_40px_rgba(255,255,255,0.3)] border-4 border-blue-800">
-           <RailwayLogo className="w-32 h-32" />
+        {/* ANIMATED TRAIN COMPONENT - MOVED TO CENTER/TOP (Replaces Logo) */}
+        <div className="z-10 w-full">
+           <AnimatedTrain />
         </div>
         
-        <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10 text-white drop-shadow-md">Railway TA Journal</h1>
-        <p className="text-blue-200 text-lg z-10 font-medium">Simplify Your Journey Claims</p>
+        <h1 className="text-4xl font-extrabold mb-2 text-center tracking-tight z-10 text-white drop-shadow-md animate-fade-in-up">Railway TA Journal</h1>
+        <p className="text-blue-200 text-lg z-10 font-medium animate-fade-in-up">Simplify Your Journey Claims</p>
+        
         <div className="mt-16 text-sm opacity-80 absolute bottom-10 z-10 font-medium tracking-wide text-center">
           {t.developer} <br/> {DEVELOPER_NAME}
         </div>
@@ -449,6 +522,12 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [activeTab, setActiveTab] = useState<'history' | 'profile'>('history');
 
+  const handleSendFeedback = () => {
+    const subject = encodeURIComponent("Feedback: Railway TA App");
+    const body = encodeURIComponent("Hello Milind,\n\nI have a suggestion/feedback regarding the app:\n\n");
+    window.location.href = `mailto:milindsoftlabs@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="pb-24">
        {/* HEADER */}
@@ -552,9 +631,25 @@ const Dashboard = ({ profile, profiles, journals, onSwitchProfile, onAddProfile,
          )}
        </div>
 
-       {/* DEVELOPER FOOTER */}
-       <div className="text-center text-[10px] text-gray-400 mt-8 mb-4">
-          {t.developer} <span className="font-bold">{DEVELOPER_NAME}</span>
+       {/* FEEDBACK & DEVELOPER FOOTER */}
+       <div className="mt-8 mb-4 max-w-2xl mx-auto px-4">
+          {/* Feedback Button */}
+          <button 
+             onClick={handleSendFeedback}
+             className="w-full mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-3 rounded-xl flex items-center justify-center gap-3 shadow-sm active:scale-95 transition-all"
+          >
+             <div className="bg-white p-2 rounded-full text-blue-600 shadow-sm">
+               <Mail className="w-5 h-5" />
+             </div>
+             <div className="text-left">
+               <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">{t.feedbackTitle}</p>
+               <p className="text-xs font-bold text-blue-800">{t.feedbackSub}</p>
+             </div>
+          </button>
+          
+          <div className="text-center text-[10px] text-gray-400">
+             {t.developer} <span className="font-bold">{DEVELOPER_NAME}</span>
+          </div>
        </div>
 
        {/* BOTTOM NAVIGATION BAR */}
