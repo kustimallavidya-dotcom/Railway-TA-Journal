@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download, TrainFront, Share2, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, FileText, Plus, Save, Printer, ArrowLeft, Trash2, Copy, AlertTriangle, Settings, UserPlus, Home, Calendar, History, Download, TrainFront, Share2, Mail, LogOut } from 'lucide-react';
 import { UserProfile, MonthJournal, TAEntry } from './types';
 import { MONTHS, INITIAL_ENTRY, DEVELOPER_NAME } from './constants';
 import { PrintLayout } from './components/PrintLayout';
@@ -30,6 +30,9 @@ const STRINGS = {
     deleteJournalTitle: "Delete Month Journal?",
     deleteJournalMsg: "This will permanently delete all entries for this month. This action cannot be undone.",
     deleteConfirm: "Yes, Delete",
+    exitAppTitle: "Exit App?",
+    exitAppMsg: "Are you sure you want to exit the application?",
+    exitAppConfirm: "Exit",
     installTitle: "Install App",
     installMsg: "Install Railway TA App for easier monthly claims and offline access.",
     installNow: "Install Now",
@@ -198,6 +201,9 @@ export default function App() {
   // Install Prompt State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallModal, setShowInstallModal] = useState(false);
+  
+  // App Exit Warning State
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // --- INITIALIZATION ---
 
@@ -230,6 +236,47 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // --- HARDWARE BACK BUTTON HANDLING ---
+  useEffect(() => {
+    // Push a state when the component mounts to ensure we have history to pop
+    window.history.pushState(null, '', window.location.href);
+
+    const handleBackButton = (event: PopStateEvent) => {
+      // Prevent default behavior implies we handle it
+      event.preventDefault();
+
+      if (view === 'splash') {
+          // Do nothing on splash
+          return;
+      }
+
+      if (showExitModal) {
+         // If exit modal is already open, and back is pressed, close modal
+         setShowExitModal(false);
+         window.history.pushState(null, '', window.location.href);
+         return;
+      }
+
+      if (view !== 'dashboard') {
+         // If in sub-views, go back to dashboard
+         setView('dashboard');
+         // We must push state again to "trap" the user in the app
+         window.history.pushState(null, '', window.location.href);
+      } else {
+         // If on dashboard, show exit confirmation
+         setShowExitModal(true);
+         // Push state again so the browser doesn't actually exit yet
+         window.history.pushState(null, '', window.location.href);
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+
+    return () => {
+      window.removeEventListener('popstate', handleBackButton);
+    };
+  }, [view, showExitModal]); // Re-bind when view changes to capture correct state
 
   // Save data whenever it changes
   useEffect(() => {
@@ -279,6 +326,23 @@ export default function App() {
       }
       setShowInstallModal(false);
     }
+  };
+  
+  const handleExitApp = () => {
+    // In a browser/PWA, we cannot truly "Exit" the app programmatically in all cases.
+    // The best we can do is go back in history (which might exit) or close window.
+    // Since we pushed states to trap the user, we need to go back twice or try window.close
+    
+    // Attempt to close
+    try {
+        window.close();
+    } catch (e) {
+        // Fallback: Go back in history (release the trap)
+        // We might need to go back multiple times depending on how many traps we set
+        window.history.go(-2);
+    }
+    // Also hide modal
+    setShowExitModal(false);
   };
 
   const handleDownloadPDF = () => {
@@ -366,6 +430,24 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      
+      {/* --- EXIT APP CONFIRMATION MODAL --- */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+           <div className="bg-white rounded-xl p-6 shadow-2xl max-w-xs w-full animate-scale-in border-t-4 border-gray-600">
+               <div className="flex items-center justify-center mb-4 text-gray-600">
+                 <LogOut className="w-10 h-10" />
+               </div>
+               <h3 className="text-xl font-bold text-center text-gray-800 mb-2">{t.exitAppTitle}</h3>
+               <p className="text-gray-500 text-center mb-6 font-medium">{t.exitAppMsg}</p>
+               <div className="flex gap-3">
+                  <button onClick={() => setShowExitModal(false)} className="flex-1 py-3 text-gray-500 font-bold bg-gray-100 rounded-xl">{t.cancel}</button>
+                  <button onClick={handleExitApp} className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl shadow-lg hover:bg-gray-900">{t.exitAppConfirm}</button>
+               </div>
+           </div>
+        </div>
+      )}
+
       {/* Install Modal */}
       {showInstallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm px-4">
