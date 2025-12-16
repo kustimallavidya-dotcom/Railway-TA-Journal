@@ -204,6 +204,8 @@ export default function App() {
   
   // App Exit Warning State
   const [showExitModal, setShowExitModal] = useState(false);
+  // Unsaved Changes Warning State
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
   // --- INITIALIZATION ---
 
@@ -239,35 +241,40 @@ export default function App() {
 
   // --- HARDWARE BACK BUTTON HANDLING ---
   useEffect(() => {
-    // Push a state when the component mounts to ensure we have history to pop
-    window.history.pushState(null, '', window.location.href);
+    // 1. Push state to ensure we have a history entry to pop.
+    window.history.pushState(null, document.title, window.location.href);
 
     const handleBackButton = (event: PopStateEvent) => {
-      // Prevent default behavior implies we handle it
+      // 2. Prevent default browser behavior where possible
       event.preventDefault();
 
-      if (view === 'splash') {
-          // Do nothing on splash
-          return;
-      }
+      if (view === 'splash') return;
 
+      // HIERARCHICAL NAVIGATION LOGIC
       if (showExitModal) {
-         // If exit modal is already open, and back is pressed, close modal
-         setShowExitModal(false);
-         window.history.pushState(null, '', window.location.href);
-         return;
-      }
-
-      if (view !== 'dashboard') {
-         // If in sub-views, go back to dashboard
-         setView('dashboard');
-         // We must push state again to "trap" the user in the app
-         window.history.pushState(null, '', window.location.href);
+        setShowExitModal(false);
+      } else if (showUnsavedModal) {
+        setShowUnsavedModal(false);
+      } else if (view === 'print') {
+        // Print -> Editor (Safe)
+        setView('editor');
+      } else if (view === 'editor') {
+        // Editor -> Dashboard (Check Unsaved)
+        setShowUnsavedModal(true);
+      } else if (view === 'profile') {
+        // Profile -> Dashboard (Check Unsaved)
+        // Special case: If setting up first profile, Back = Exit App
+        if (profiles.length === 0) {
+           setShowExitModal(true);
+        } else {
+           setShowUnsavedModal(true);
+        }
+      } else if (view === 'dashboard') {
+        // Dashboard -> Show Exit Warning
+        setShowExitModal(true);
       } else {
-         // If on dashboard, show exit confirmation
-         setShowExitModal(true);
-         // Push state again so the browser doesn't actually exit yet
-         window.history.pushState(null, '', window.location.href);
+        // Fallback
+        setView('dashboard');
       }
     };
 
@@ -276,7 +283,7 @@ export default function App() {
     return () => {
       window.removeEventListener('popstate', handleBackButton);
     };
-  }, [view, showExitModal]); // Re-bind when view changes to capture correct state
+  }, [view, showExitModal, showUnsavedModal, profiles.length]); 
 
   // Save data whenever it changes
   useEffect(() => {
@@ -329,19 +336,14 @@ export default function App() {
   };
   
   const handleExitApp = () => {
-    // In a browser/PWA, we cannot truly "Exit" the app programmatically in all cases.
-    // The best we can do is go back in history (which might exit) or close window.
-    // Since we pushed states to trap the user, we need to go back twice or try window.close
-    
-    // Attempt to close
+    // In a browser/PWA, we cannot always force close. 
+    // We try window.close(), otherwise we just hide modal and let user press Home.
     try {
         window.close();
     } catch (e) {
-        // Fallback: Go back in history (release the trap)
-        // We might need to go back multiple times depending on how many traps we set
-        window.history.go(-2);
+        console.log("Cannot close window scriptedly");
     }
-    // Also hide modal
+    // As a fallback, we just close the modal.
     setShowExitModal(false);
   };
 
@@ -431,23 +433,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       
-      {/* --- EXIT APP CONFIRMATION MODAL --- */}
-      {showExitModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
-           <div className="bg-white rounded-xl p-6 shadow-2xl max-w-xs w-full animate-scale-in border-t-4 border-gray-600">
-               <div className="flex items-center justify-center mb-4 text-gray-600">
-                 <LogOut className="w-10 h-10" />
-               </div>
-               <h3 className="text-xl font-bold text-center text-gray-800 mb-2">{t.exitAppTitle}</h3>
-               <p className="text-gray-500 text-center mb-6 font-medium">{t.exitAppMsg}</p>
-               <div className="flex gap-3">
-                  <button onClick={() => setShowExitModal(false)} className="flex-1 py-3 text-gray-500 font-bold bg-gray-100 rounded-xl">{t.cancel}</button>
-                  <button onClick={handleExitApp} className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl shadow-lg hover:bg-gray-900">{t.exitAppConfirm}</button>
-               </div>
-           </div>
-        </div>
-      )}
-
       {/* Install Modal */}
       {showInstallModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm px-4">
@@ -532,6 +517,41 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* --- UNSAVED CHANGES MODAL (Orange Warning) --- */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+           <div className="bg-white rounded-xl p-6 shadow-2xl max-w-xs w-full animate-scale-in border-t-4 border-amber-500">
+               <div className="flex items-center justify-center mb-4 text-amber-500">
+                 <AlertTriangle className="w-10 h-10" />
+               </div>
+               <h3 className="text-xl font-bold text-center text-gray-800 mb-2">{t.unsavedTitle}</h3>
+               <p className="text-gray-500 text-center mb-6 font-medium">{t.unsavedMsg}</p>
+               <div className="flex gap-3">
+                  <button onClick={() => setShowUnsavedModal(false)} className="flex-1 py-3 text-gray-500 font-bold bg-gray-100 rounded-xl">{t.cancel}</button>
+                  <button onClick={() => { setShowUnsavedModal(false); setView('dashboard'); }} className="flex-1 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-lg hover:bg-amber-700">{t.exitAnyway}</button>
+               </div>
+           </div>
+        </div>
+      )}
+
+      {/* --- EXIT APP CONFIRMATION MODAL (High Z-Index) --- */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+           <div className="bg-white rounded-xl p-6 shadow-2xl max-w-xs w-full animate-scale-in border-t-4 border-gray-600">
+               <div className="flex items-center justify-center mb-4 text-gray-600">
+                 <LogOut className="w-10 h-10" />
+               </div>
+               <h3 className="text-xl font-bold text-center text-gray-800 mb-2">{t.exitAppTitle}</h3>
+               <p className="text-gray-500 text-center mb-6 font-medium">{t.exitAppMsg}</p>
+               <div className="flex gap-3">
+                  <button onClick={() => setShowExitModal(false)} className="flex-1 py-3 text-gray-500 font-bold bg-gray-100 rounded-xl">{t.cancel}</button>
+                  <button onClick={handleExitApp} className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-xl shadow-lg hover:bg-gray-900">{t.exitAppConfirm}</button>
+               </div>
+           </div>
+        </div>
+      )}
+
     </div>
   );
 }
